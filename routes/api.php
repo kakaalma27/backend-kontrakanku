@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\authenticationsApi\AddressController;
 use App\Http\Controllers\authenticationsApi\UserController;
 use App\Http\Controllers\authenticationsApi\HouseController;
 use App\Http\Controllers\authenticationsApi\BantuanController;
@@ -33,7 +33,11 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
-
+Route::middleware('auth:sanctum')
+  ->prefix('address')
+  ->group(function () {
+    Route::post('/store', [AddressController::class, 'store']);
+  });
 Route::middleware('auth:sanctum')
   ->prefix('bantuans')
   ->group(function () {

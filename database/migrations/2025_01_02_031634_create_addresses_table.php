@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bantuans', function (Blueprint $table) {
+        Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
-            $table->bigInteger('house_id')->default(0);
-            $table->string('name');
-            $table->string('judul');
-            $table->longText('deskripsi');
-
+            $table->string('name')->nullable();
+            $table->string('phone')->nullable();
+            $table->longText('alamat')->nullable();
+            $table->longText('jalan')->nullable();
+            $table->longText('detail')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bantuans');
+        Schema::dropIfExists('addresses');
     }
 };
