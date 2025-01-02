@@ -10,12 +10,14 @@ return new class extends Migration {
    */
   public function up(): void
   {
-    Schema::create('house_bookings', function (Blueprint $table) {
+    Schema::create('transactions_houses', function (Blueprint $table) {
       $table->id();
       $table->bigInteger('user_id');
       $table->bigInteger('house_id');
-      $table->date('start_date');
-      $table->date('end_date');
+      $table->bigInteger('booking_id');
+      $table->string('payment')->default('cash');
+      $table->float('price')->default(0);
+      $table->tinyInteger('status')->default(0); 
       $table->softDeletes();
       $table->timestamps();
     });
@@ -26,6 +28,6 @@ return new class extends Migration {
    */
   public function down(): void
   {
-    Schema::dropIfExists('house_bookings');
+    Schema::dropIfExists('transactions_houses');
   }
 };

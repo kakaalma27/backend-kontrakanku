@@ -10,12 +10,12 @@ return new class extends Migration {
    */
   public function up(): void
   {
-    Schema::create('house_bookings', function (Blueprint $table) {
+    Schema::create('user_transactions_details_houses', function (Blueprint $table) {
       $table->id();
       $table->bigInteger('user_id');
       $table->bigInteger('house_id');
-      $table->date('start_date');
-      $table->date('end_date');
+      $table->bigInteger('booking_id');
+      $table->bigInteger('payment_id');
       $table->softDeletes();
       $table->timestamps();
     });
@@ -26,6 +26,6 @@ return new class extends Migration {
    */
   public function down(): void
   {
-    Schema::dropIfExists('house_bookings');
+    Schema::dropIfExists('user_transactions_details_houses');
   }
 };

@@ -1,29 +1,37 @@
 <?php
 namespace App\Http\Controllers\authenticationsApi;
 
+use App\Models\house;
 use App\Models\transaction;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Models\houseBooking;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
-  public function all(Request $request)
+  public function store(Request $request)
   {
-    $id = $request->input('id');
-    $name = $request->input('name');
-    $limit = $request->input('limit', 10); // Default limit to 10 if not provided
+    $request->validate([
+      'house_id' => 'required|exists:houses,id',
+      'booking_id' => 'required|exists:booking,id',
+      'payment' => 'nullable|string',
+      'price' => 'numeric|required',
+      'status' => 'integer|nullable',
+    ]);
+    $house = house::find($request->house_id);
+    $booking = houseBooking::find($request->booking_id);
 
-    if ($id) {
-      $transactions = transaction::with(['house'])->find($id);
+    $transaksi = transaction::create([
+      'user_id' => auth()->id(),
+      'house_id' => $house->id,
+      'booking_id' => $booking->id,
+      'payment' => $request->payment,
+      'price' => $house->price,
+      'status' => $request->status,
+  ]);
 
-      if ($transactions) {
-        return ResponseFormatter::success($house, 'Data transaksi berhasil diambil');
-      } else {
-        return ResponseFormatter::error(null, 'Data transaksi tidak ada', 404);
-      }
-    }
-    $transactions = transaction::with(['house'])->where('user_id', Auth::user());
+  return ResponseFormatter::success($transaksi, 'Booking Berhasil');
   }
 }

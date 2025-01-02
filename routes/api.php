@@ -4,9 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\authenticationsApi\UserController;
 use App\Http\Controllers\authenticationsApi\HouseController;
+use App\Http\Controllers\authenticationsApi\BantuanController;
 use App\Http\Controllers\authenticationsApi\HouseImageController;
-use App\Http\Controllers\authenticationsApi\HouseCategoryController;
-// use App\Http\Controllers\authenticationsApi\UserVerificationApiController;
+use App\Http\Controllers\authenticationsApi\TransactionController;
+use App\Http\Controllers\authenticationsApi\HouseBookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,12 +35,28 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')
+  ->prefix('bantuans')
+  ->group(function () {
+    Route::get('/cek-user', [BantuanController::class, 'index']);
+    Route::post('/store', [BantuanController::class, 'store']);
+  });
+Route::middleware('auth:sanctum')
+  ->prefix('user-bookings')
+  ->group(function () {
+    Route::post('/store', [HouseBookingController::class, 'store']);
+  });
+Route::middleware('auth:sanctum')
+  ->prefix('transaksi')
+  ->group(function () {
+    Route::post('/store', [TransactionController::class, 'store']);
+    });
+Route::middleware('auth:sanctum')
   ->prefix('houses')
   ->group(function () {
-    Route::get('/get-all', [HouseController::class, 'all']); // Get all houses / filtered
-    Route::post('/store', [HouseController::class, 'store']); // Create new house
-    Route::put('/{id}', [HouseController::class, 'update']); // Update existing house
-    Route::delete('/{id}', [HouseController::class, 'destroy']); // Delete house by ID
+    Route::get('/get-all', [HouseController::class, 'all']);
+    Route::post('/store', [HouseController::class, 'store']);
+    Route::put('/{id}', [HouseController::class, 'update']); 
+    Route::delete('/{id}', [HouseController::class, 'destroy']); 
   });
 
 Route::middleware('auth:sanctum')

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class houseBooking extends Model
 {
   use HasFactory, SoftDeletes;
-  protected $fillable = ['user_id', 'house_id'];
+  protected $fillable = ['user_id', 'house_id', 'start_date', 'end_date'];
 
   public function user()
   {
