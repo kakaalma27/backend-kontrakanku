@@ -24,7 +24,7 @@ class CreateHouseSeeder extends Seeder
                 'wc' => 2,
                 'quantity' => 10,
                 'available' => true,
-                'user_id' => 1, 
+                'user_id' => 2, 
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

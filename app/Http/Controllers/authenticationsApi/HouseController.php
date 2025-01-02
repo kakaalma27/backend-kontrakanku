@@ -5,6 +5,7 @@ use App\Models\house;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 
 class HouseController extends Controller
 {
@@ -68,7 +69,7 @@ class HouseController extends Controller
 
   public function store(Request $request)
   {
-    // Validasi input
+ 
     $request->validate([
       'name' => 'required|string|max:255',
       'price' => 'required|numeric',
@@ -78,11 +79,24 @@ class HouseController extends Controller
       'wc' => 'nullable|integer',
       'quantity' => 'nullable|integer',
       'available' => 'required|boolean',
-      'user_id' => 'required|exists:users,id',
     ]);
+    $user_id = auth()->id();
+    $user = User::find($user_id);
+    if (!$user || !in_array($user->role, [1, 2])) {
+        return ResponseFormatter::error($user, 'Opps, kamu tidak meiliki ijin');
+    }
+    $house  = house::create([
+      'name' => $request->name,
+      'price' => $request->price,
+      'description' => $request->description,
+      'tags' => $request->tags,
+      'kamar' => $request->kamar,
+      'wc' => $request->wc,
+      'quantity' => $request->quantity,
+      'available' => $request->available,
+      'user_id' => $user_id,
+  ]);
 
-    // Simpan data
-    $house = house::create($request->all());
     return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
   }
 
