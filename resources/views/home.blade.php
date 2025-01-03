@@ -4,6 +4,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <h4>Cambotutorial.com</h4>
             <div class="card">
                 <div class="card-header">{{ __('Dashboard') }}</div>
 
@@ -13,8 +14,9 @@
                             {{ session('status') }}
                         </div>
                     @endif
-
-                    {{ __('You are logged in!') }}
+                    {{ Auth::user()->name }}
+                    <br>
+                    {{$msg}}
                 </div>
             </div>
         </div>

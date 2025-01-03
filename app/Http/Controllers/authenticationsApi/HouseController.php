@@ -13,7 +13,7 @@ class HouseController extends Controller
   {
     $id = $request->input('id');
     $name = $request->input('name');
-    $limit = $request->input('limit', 10); // Default limit to 10 if not provided
+    $limit = $request->input('limit', 10);
     $price_from = $request->input('price_from');
     $price_to = $request->input('price_to');
     $description = $request->input('description');

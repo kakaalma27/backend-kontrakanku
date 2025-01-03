@@ -7,7 +7,8 @@ use App\Http\Controllers\authenticationsApi\HouseController;
 use App\Http\Controllers\authenticationsApi\BantuanController;
 use App\Http\Controllers\authenticationsApi\HouseImageController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
-use App\Http\Controllers\authenticationsApi\HouseBookingController;
+use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
+use App\Models\transactionsDetails;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,22 +39,23 @@ Route::middleware('auth:sanctum')
   ->group(function () {
     Route::post('/store', [AddressController::class, 'store']);
   });
-Route::middleware('auth:sanctum')
-  ->prefix('bantuans')
-  ->group(function () {
-    Route::get('/cek-user', [BantuanController::class, 'index']);
-    Route::post('/store', [BantuanController::class, 'store']);
-  });
+
 Route::middleware('auth:sanctum')
   ->prefix('user-bookings')
   ->group(function () {
-    Route::post('/store', [HouseBookingController::class, 'store']);
+    Route::post('/store', [UserBookingHouseController::class, 'store']);
   });
 Route::middleware('auth:sanctum')
   ->prefix('transaksi')
   ->group(function () {
+    Route::get('/cek-data', [TransactionController::class, 'index']);
     Route::post('/store', [TransactionController::class, 'store']);
     });
+Route::middleware('auth:sanctum')
+    ->prefix('transaksi-details')
+    ->group(function () {
+      Route::post('/store', [transactionsDetails::class, 'store']);
+      });
 Route::middleware('auth:sanctum')
   ->prefix('houses')
   ->group(function () {

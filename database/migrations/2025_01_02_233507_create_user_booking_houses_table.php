@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bantuans', function (Blueprint $table) {
+        Schema::create('user_booking_houses', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
-            $table->bigInteger('house_id')->default(0);
-            $table->string('name');
-            $table->string('judul');
-            $table->longText('deskripsi');
-
+            $table->bigInteger('house_id');
+            $table->enum('status', ['pending', 'resolved', 'rejected'])->default('pending');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bantuans');
+        Schema::dropIfExists('user_booking_houses');
     }
 };
