@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\authenticationsApi\AddressController;
 use App\Http\Controllers\authenticationsApi\UserController;
 use App\Http\Controllers\authenticationsApi\HouseController;
-use App\Http\Controllers\authenticationsApi\BantuanController;
 use App\Http\Controllers\authenticationsApi\HouseImageController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
@@ -34,11 +33,15 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
-Route::middleware('auth:sanctum')
-  ->prefix('address')
-  ->group(function () {
-    Route::post('/store', [AddressController::class, 'store']);
-  });
+Route::middleware('auth:sanctum')->group(function () {
+  Route::get('/addresses', [AddressController::class, 'index']);
+  Route::get('/addresses/all', [AddressController::class, 'allAddresses']); // Melihat semua alamat (Admin Only)
+  Route::get('/addresses/{id}', [AddressController::class, 'show']);
+  Route::post('/addresses', [AddressController::class, 'store']);
+  Route::put('/addresses/{id}', [AddressController::class, 'update']);
+  Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+});
+
 
 Route::middleware('auth:sanctum')
   ->prefix('user-bookings')
@@ -65,11 +68,3 @@ Route::middleware('auth:sanctum')
     Route::delete('/{id}', [HouseController::class, 'destroy']); 
   });
 
-Route::middleware('auth:sanctum')
-  ->prefix('house-images')
-  ->group(function () {
-    Route::post('/store', [HouseImageController::class, 'store']);
-    Route::get('/{id}', [HouseImageController::class, 'show']);
-    Route::put('/{id}', [HouseImageController::class, 'update']);
-    Route::delete('/{id}', [HouseImageController::class, 'destroy']);
-  });

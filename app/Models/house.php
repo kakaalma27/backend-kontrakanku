@@ -11,8 +11,8 @@ class house extends Model
   use HasFactory, SoftDeletes;
   protected $fillable = ['name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity'];
 
-  public function images()
+  public function addresses()
   {
-    return $this->hasMany(houseImage::class, 'house_id', 'id');
+    return $this->belongsTo(address::class, 'user_id', 'id');
   }
 }

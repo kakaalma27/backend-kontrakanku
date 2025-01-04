@@ -25,7 +25,7 @@ class HouseController extends Controller
     $user_id = $request->input('user_id');
 
     if ($id) {
-      $house = house::with(['images'])->find($id);
+      $house = house::with(['addresses'])->find($id);
 
       if ($house) {
         return ResponseFormatter::success($house, 'Data kontrakan berhasil diambil');
@@ -34,7 +34,7 @@ class HouseController extends Controller
       }
     }
 
-    $houseQuery = house::with(['images']);
+    $houseQuery = house::with(['addresses']);
 
     if ($name) {
       $houseQuery->where('name', 'like', '%' . $name . '%');
