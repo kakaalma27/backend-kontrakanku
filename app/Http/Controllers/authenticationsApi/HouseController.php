@@ -69,35 +69,45 @@ class HouseController extends Controller
 
   public function store(Request $request)
   {
- 
-    $request->validate([
-      'name' => 'required|string|max:255',
-      'price' => 'required|numeric',
-      'description' => 'nullable|string',
-      'tags' => 'nullable|string',
-      'kamar' => 'nullable|integer',
-      'wc' => 'nullable|integer',
-      'quantity' => 'nullable|integer',
-      'available' => 'required|boolean',
-    ]);
-    $user_id = auth()->id();
-    $user = User::find($user_id);
-    if (!$user || !in_array($user->role, [1, 2])) {
-        return ResponseFormatter::error($user, 'Opps, kamu tidak meiliki ijin');
-    }
-    $house  = house::create([
-      'name' => $request->name,
-      'price' => $request->price,
-      'description' => $request->description,
-      'tags' => $request->tags,
-      'kamar' => $request->kamar,
-      'wc' => $request->wc,
-      'quantity' => $request->quantity,
-      'available' => $request->available,
-      'user_id' => $user_id,
-  ]);
-
-    return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
+      $request->validate([
+          'name' => 'required|string|max:255',
+          'price' => 'required|numeric',
+          'description' => 'nullable|string',
+          'tags' => 'nullable|string',
+          'kamar' => 'nullable|integer',
+          'wc' => 'nullable|integer',
+          'quantity' => 'nullable|integer',
+          'available' => 'required|boolean',
+          'images' => 'required|array', // Ensure images are required
+          'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate each image
+      ]);
+  
+      $user_id = auth()->id();
+      $user = User::find($user_id);
+      if (!$user || !in_array($user->role, [1, 2])) {
+          return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
+      }
+  
+      $imagePaths = [];
+      foreach ($request->file('images') as $image) {
+          $path = $image->store('images', 'public');
+          $imagePaths[] = $path;
+      }
+  
+      $house = house::create([
+          'path' => json_encode($imagePaths), 
+          'name' => $request->name,
+          'price' => $request->price,
+          'description' => $request->description,
+          'tags' => $request->tags,
+          'kamar' => $request->kamar,
+          'wc' => $request->wc,
+          'quantity' => $request->quantity,
+          'available' => $request->available,
+          'user_id' => $user_id,
+      ]);
+  
+      return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
   }
 
   public function update(Request $request, $id)
