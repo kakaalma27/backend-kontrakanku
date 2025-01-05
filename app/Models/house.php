@@ -15,4 +15,5 @@ class house extends Model
   {
     return $this->belongsTo(address::class, 'user_id', 'id');
   }
+
 }

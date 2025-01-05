@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class transactionsDetails extends Model
 {
   use HasFactory, SoftDeletes;
+  protected $table = 'user_transactions_details_houses';
   protected $fillable = ['user_id', 'house_id', 'payment_id', 'booking_id'];
 
   public function User()

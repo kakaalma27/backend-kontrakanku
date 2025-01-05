@@ -2,49 +2,22 @@
 
 namespace App\Http\Controllers\authenticationsApi;
 
-use App\Models\transaction;
 use App\Models\userComplaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\ResponseFormatter;
-use App\Models\transactionsDetails;
 use App\Http\Controllers\Controller;
-use Exception;
+use App\Notifications\UserActionNotification;
+
 use Illuminate\Support\Facades\Log;
 class UserComplaintController extends Controller
 {
-    public function index()
-    {
-        try {
-            $cek = UserComplaint::with('house', 'addresses', 'users')->get();
-    
-            if ($cek->isEmpty()) {
-                return ResponseFormatter::error(null, 'Tidak ada data keluhan yang ditemukan', 404);
-            }
-    
-            $data = $cek->map(function ($complaint) {
-                return [
-                    'id' => $complaint->id,
-                    'description' => $complaint->users, // Pastikan ini adalah data yang ingin Anda tampilkan
-                    'house' => $complaint->house,
-                    'addresses' => $complaint->addresses,
-                ];
-            });
-    
-            return ResponseFormatter::success($data, 'Relasi Terhubung');
-        } catch (\Exception $e) {
-            // Menyimpan kesalahan ke dalam log
-            Log::error('Error fetching user complaints: ' . $e->getMessage());
-    
-            // Mengembalikan respons error
-            return ResponseFormatter::error(null, 'Terjadi kesalahan saat mengambil data keluhan', 500);
-        }
-    }
 
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'transaksi_detail_id' => 'required|exists:user_transactions_details_houses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
@@ -54,16 +27,10 @@ class UserComplaintController extends Controller
         }
 
         try {
-            $transactionDetail = transactionsDetails::where('id', $request->transaksi_detail_id)
-                ->where('user_id', $request->user_id)
-                ->first();
-
-            if (!$transactionDetail || !$transactionDetail->house_id) {
-                return ResponseFormatter::error(null, 'Tidak dapat mengirim keluhan karena transaksi tidak valid atau rumah tidak terdaftar.', 400);
-            }
-
+            $pengguna = auth()->id();
             $complaint = UserComplaint::create([
-                'user_id' => auth()->id(),
+                'user_id' => $pengguna,
+                'transaksi_detail_id' => $request->transaksi_detail_id,
                 'title' => $request->title,
                 'description' => $request->description,
                 'status' => 'pending', 
@@ -71,6 +38,7 @@ class UserComplaintController extends Controller
 
             return ResponseFormatter::success($complaint, 'Keluhan berhasil dibuat');
         } catch (\Exception $e) {
+            \Log::error($e->getMessage());
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan keluhan', 500);
         }
     }

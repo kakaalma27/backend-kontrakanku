@@ -1,18 +1,20 @@
 <?php
 namespace App\Http\Controllers\authenticationsApi;
 
-use App\Models\house;
+use Exception;
 
+use App\Models\User;
+use App\Models\house;
 use App\Models\transaction;
 use Illuminate\Http\Request;
 use App\Models\userBookingHouse;
 use App\Helpers\ResponseFormatter;
-use App\Http\Controllers\Controller;
 use App\Models\transactionsDetails;
-use Exception;
+use App\Http\Controllers\Controller;
 
 class TransactionsDetailsController extends Controller
 {
+
   public function store(Request $request)
   {
       // Validasi input
@@ -23,6 +25,7 @@ class TransactionsDetailsController extends Controller
       ]);
 
       try {
+        
           // Temukan model yang diperlukan
           $house = House::find($request->house_id);
           $booking = UserBookingHouse::find($request->booking_id);

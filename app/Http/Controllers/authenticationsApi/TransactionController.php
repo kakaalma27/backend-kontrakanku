@@ -9,23 +9,38 @@ use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\transactionsDetails;
 use App\Models\userBookingHouse;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
 
-  public function index()
-  {
-    // $cekData = DB::table('user_booking_houses')
-    // ->join('users', 'users.id', '=', 'user_booking_houses.user_id')
-    // ->join('houses', 'houses.id', '=', 'user_booking_houses.house_id')
-    // ->get();
-    // return response()->json($cekData);
-    $cekData = userBookingHouse::all();
-     return response()->json($cekData);
-  }
+    public function index()
+    {
+        $houses = House::with('addresses')->get();
+        $transaksi = transactionsDetails::all();
+        $pemilik = [];
 
+        $penyewa = [];
+    
+        foreach ($houses as $house) {
+            $pemilik[] = User::where('role', 1)->find($house->user_id); // Pemilik rumah
+        }
+    
+        foreach ($transaksi as $transaction) {
+            $penyewa[] = User::where('role', 0)->find($transaction->user_id); // Penyewa berdasarkan transaksi
+        }
+
+        $data = [
+            'pemilik' => $pemilik,
+            'penyewa' => $penyewa,
+        ];
+    
+        return ResponseFormatter::success($data, 'Transaksi Berhasil diAmbil');
+    }
+    
+    
   public function store(Request $request)
   {
       try {

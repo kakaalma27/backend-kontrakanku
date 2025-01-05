@@ -31,37 +31,29 @@ class OwnerResponseController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
+        $validated = $request->validate([
             'complaint_id' => 'required|exists:user_complaints,id',
             'response' => 'required|string',
         ]);
 
-        if ($validator->fails()) {
-            return ResponseFormatter::error(null, $validator->errors()->first(), 422);
-        }
-
         try {
-            // Menyimpan respons pemilik
-            $ownerResponse = OwnerResponse::create([
-                'user_id' => auth()->id(),
-                'complaint_id' => $request->complaint_id,
-                'response' => $request->response,
+            $response = OwnerResponse::create([
+                'user_id' => auth()->id(), // Jika menggunakan autentikasi
+                'complaint_id' => $validated['complaint_id'],
+                'response' => $validated['response'],
             ]);
 
-            // Update status keluhan menjadi resolved jika pemilik merespon
-            $complaint = UserComplaint::find($request->complaint_id);
-            if ($complaint) {
-                $complaint->update(['status' => 'resolved']);
-            }
+            $complaint = UserComplaint::find($validated['complaint_id']);
+            $complaint->update([
+                'owner_response' => $validated['response'],
+                'status' => 'resolved', // Jika ingin langsung mengubah status
+            ]);
 
-            return ResponseFormatter::success($ownerResponse, 'Respons pemilik berhasil disimpan');
+            return ResponseFormatter::success($response, 'Respons pemilik berhasil disimpan');
         } catch (\Exception $e) {
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan respons pemilik', 500);
         }
     }
-    
     /**
      * Display the specified resource.
      */
