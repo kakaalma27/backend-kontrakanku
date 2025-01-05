@@ -2,87 +2,153 @@
 
 namespace App\Http\Controllers\authenticationsApi;
 
+use App\Models\OwnerResponse;
+use App\Models\UserComplaint;
 use Illuminate\Http\Request;
-use App\Models\ownerResponse;
-use App\Models\userComplaint;
-use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Validator;
+use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
+
 class OwnerResponseController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of responses for a specific complaint.
      */
-    public function index()
+    public function index($complaintId)
     {
-        //
+        try {
+            $complaint = UserComplaint::find($complaintId);
+
+            if (!$complaint) {
+                return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
+            }
+
+            $responses = OwnerResponse::where('complaint_id', $complaintId)->get();
+            return ResponseFormatter::success($responses, 'Daftar respon berhasil diambil');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, 'Gagal mengambil daftar respon', 500);
+        }
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Store a newly created response.
      */
-    public function create()
+    public function store(Request $request, $complaintId)
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'complaint_id' => 'required|exists:user_complaints,id',
+        $validator = Validator::make($request->all(), [
             'response' => 'required|string',
         ]);
 
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null, $validator->errors()->first(), 422);
+        }
+
         try {
-            $response = OwnerResponse::create([
-                'user_id' => auth()->id(), // Jika menggunakan autentikasi
-                'complaint_id' => $validated['complaint_id'],
-                'response' => $validated['response'],
+            $complaint = UserComplaint::find($complaintId);
+
+            if (!$complaint) {
+                return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
+            }
+
+            // Cek apakah pengguna adalah pemilik properti
+            $user = auth()->user();
+            if ($user->id != $complaint->transaksiDetail->house->owner_id) {
+                return ResponseFormatter::error(null, 'Anda bukan pemilik properti ini', 403);
+            }
+
+            $ownerResponse = OwnerResponse::create([
+                'complaint_id' => $complaintId,
+                'response' => $request->response,
+                'owner_id' => $user->id,
             ]);
 
-            $complaint = UserComplaint::find($validated['complaint_id']);
-            $complaint->update([
-                'owner_response' => $validated['response'],
-                'status' => 'resolved', // Jika ingin langsung mengubah status
-            ]);
-
-            return ResponseFormatter::success($response, 'Respons pemilik berhasil disimpan');
+            return ResponseFormatter::success($ownerResponse, 'Respon berhasil dikirim');
         } catch (\Exception $e) {
-            return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan respons pemilik', 500);
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan respon', 500);
         }
     }
+
     /**
-     * Display the specified resource.
+     * Display the specified response.
      */
-    public function show(ownerResponse $ownerResponse)
+    public function show($complaintId, $id)
     {
-        //
+        try {
+            $response = OwnerResponse::where('complaint_id', $complaintId)->find($id);
+
+            if (!$response) {
+                return ResponseFormatter::error(null, 'Respon tidak ditemukan', 404);
+            }
+
+            return ResponseFormatter::success($response, 'Detail respon berhasil diambil');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, 'Gagal mengambil detail respon', 500);
+        }
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Update the specified response.
      */
-    public function edit(ownerResponse $ownerResponse)
+    public function update(Request $request, $complaintId, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'response' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null, $validator->errors()->first(), 422);
+        }
+
+        try {
+            $response = OwnerResponse::where('complaint_id', $complaintId)->find($id);
+
+            if (!$response) {
+                return ResponseFormatter::error(null, 'Respon tidak ditemukan', 404);
+            }
+
+            // Cek apakah pengguna adalah pemilik yang sama
+            if ($response->owner_id != auth()->id()) {
+                return ResponseFormatter::error(null, 'Anda tidak memiliki izin untuk memperbarui respon ini', 403);
+            }
+
+            $response->update([
+                'response' => $request->response,
+            ]);
+
+            return ResponseFormatter::success($response, 'Respon berhasil diperbarui');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, 'Gagal memperbarui respon', 500);
+        }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Remove the specified response.
      */
-    public function update(Request $request, ownerResponse $ownerResponse)
+    public function destroy($complaintId, $id)
     {
-        //
-    }
+        try {
+            $response = OwnerResponse::where('complaint_id', $complaintId)->find($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ownerResponse $ownerResponse)
-    {
-        //
+            if (!$response) {
+                return ResponseFormatter::error(null, 'Respon tidak ditemukan', 404);
+            }
+
+            // Cek apakah pengguna adalah pemilik yang sama
+            if ($response->owner_id != auth()->id()) {
+                return ResponseFormatter::error(null, 'Anda tidak memiliki izin untuk menghapus respon ini', 403);
+            }
+
+            $response->delete();
+
+            return ResponseFormatter::success(null, 'Respon berhasil dihapus');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, 'Gagal menghapus respon', 500);
+        }
     }
 }

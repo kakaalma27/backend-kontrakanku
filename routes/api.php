@@ -83,12 +83,20 @@ Route::middleware('auth:sanctum')
   Route::middleware('auth:sanctum')
   ->prefix('user-complain')
   ->group(function () {
-    Route::get('/cek-data', [UserComplaintController::class, 'index']);
-    Route::post('/store', [UserComplaintController::class, 'store']);
+        Route::get('/', [UserComplaintController::class, 'index']);
+        Route::post('/store', [UserComplaintController::class, 'store']);
+        Route::get('/{id}', [UserComplaintController::class, 'show']);
+        Route::put('/{id}', [UserComplaintController::class, 'update']);
+        Route::delete('/{id}', [UserComplaintController::class, 'destroy']);
+
   });
 
   Route::middleware('auth:sanctum')
   ->prefix('ower-response')
   ->group(function () {
-    Route::post('/store', [OwnerResponseController::class, 'store']);
+        Route::get('/{complaintId}', [OwnerResponseController::class, 'index']);
+        Route::post('/{complaintId}/store', [OwnerResponseController::class, 'store']);
+        Route::get('/{complaintId}/{id}', [OwnerResponseController::class, 'show']);
+        Route::put('/{complaintId}/{id}', [OwnerResponseController::class, 'update']);
+        Route::delete('/{complaintId}/{id}', [OwnerResponseController::class, 'destroy']);
   });
