@@ -88,15 +88,14 @@ class HouseController extends Controller
       if (!$user || !in_array($user->role, [1, 2])) {
           return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
       }
-
       $imageUrls = [];
       foreach ($request->file('images') as $image) {
           $path = $image->storeAs('public/images', $image->getClientOriginalName());
-          $imageUrls[] = $path;
+          $imageUrls[] = asset('storage/images/' . $image->getClientOriginalName());
       }
   
       $house = house::create([
-        'path' => json_encode($imageUrls),
+        'path' => $imageUrls,
         'name' => $request->name,
         'price' => $request->price,
         'description' => $request->description,
