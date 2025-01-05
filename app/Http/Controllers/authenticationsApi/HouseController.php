@@ -88,25 +88,25 @@ class HouseController extends Controller
       if (!$user || !in_array($user->role, [1, 2])) {
           return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
       }
-  
+
       $imageUrls = [];
       foreach ($request->file('images') as $image) {
-          $path = $image->store('images', 'public'); 
-          $imageUrls[] = Storage::url($path); 
+          $path = $image->storeAs('public/images', $image->getClientOriginalName());
+          $imageUrls[] = $path;
       }
   
       $house = house::create([
-          'url' => $imageUrls, 
-          'name' => $request->name,
-          'price' => $request->price,
-          'description' => $request->description,
-          'tags' => $request->tags,
-          'kamar' => $request->kamar,
-          'wc' => $request->wc,
-          'quantity' => $request->quantity,
-          'available' => $request->available,
-          'user_id' => $user_id,
-      ]);
+        'path' => json_encode($imageUrls),
+        'name' => $request->name,
+        'price' => $request->price,
+        'description' => $request->description,
+        'tags' => $request->tags,
+        'kamar' => $request->kamar,
+        'wc' => $request->wc,
+        'quantity' => $request->quantity,
+        'available' => $request->available,
+        'user_id' => $user_id,
+    ]);
   
       return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
   }

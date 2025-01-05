@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\house;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
+use Illuminate\Support\Facades\Storage;
 class CreateHouseSeeder extends Seeder
 {
     /**
@@ -13,30 +13,34 @@ class CreateHouseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Mengisi tabel houses dengan data dummy
-        $houses = [
-            [
-                'url' => json_encode([
-                    'https://46ef-36-74-42-78.ngrok-free.app/storage/images/1.png',
-                    'https://46ef-36-74-42-78.ngrok-free.app/storage/images/2.png',
-                ]),
-                'name' => 'Rumah Minimalis',
-                'price' => 450000,
-                'description' => 'Rumah minimalis dengan 3 kamar tidur dan 2 kamar mandi.',
-                'tags' => 'minimalis, modern',
-                'kamar' => 3,
-                'wc' => 2,
-                'quantity' => 10,
-                'available' => true,
-                'user_id' => 2, 
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+        // Buat folder images jika belum ada
+        if (!Storage::exists('public/images')) {
+            Storage::makeDirectory('public/images');
+        }
+
+        $imagePaths = [
+            'public/images/1.png',
+            'public/images/2.png',
         ];
 
-        foreach ($houses as $key => $house) 
-        {
-            house::create($house);
+        foreach ($imagePaths as $imagePath) {
+            Storage::put($imagePath, ''); 
         }
+
+        House::create([
+            'path' => json_encode($imagePaths),
+            'name' => 'Rumah Contoh 1',
+            'price' => 450000,
+            'description' => 'Rumah nyaman dengan fasilitas lengkap.',
+            'tags' => 'nyaman, strategis',
+            'kamar' => 3,
+            'wc' => 2,
+            'quantity' => 1,
+            'available' => true,
+            'user_id' => 2,
+        ]);
+
+
+        $this->command->info('HouseSeeder berhasil dijalankan!');
     }
 }

@@ -12,7 +12,7 @@ return new class extends Migration {
   {
     Schema::create('houses', function (Blueprint $table) {
       $table->id();
-      $table->json('url');
+      $table->string('path');
       $table->string('name');
       $table->float('price');
       $table->longText('description');
