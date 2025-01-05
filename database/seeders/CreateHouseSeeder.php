@@ -16,6 +16,10 @@ class CreateHouseSeeder extends Seeder
         // Mengisi tabel houses dengan data dummy
         $houses = [
             [
+                'url' => json_encode([
+                    'https://46ef-36-74-42-78.ngrok-free.app/storage/images/1.png',
+                    'https://46ef-36-74-42-78.ngrok-free.app/storage/images/2.png',
+                ]),
                 'name' => 'Rumah Minimalis',
                 'price' => 450000,
                 'description' => 'Rumah minimalis dengan 3 kamar tidur dan 2 kamar mandi.',

@@ -1,11 +1,12 @@
 <?php
 namespace App\Http\Controllers\authenticationsApi;
 
+use App\Models\User;
 use App\Models\house;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class HouseController extends Controller
 {
@@ -78,8 +79,8 @@ class HouseController extends Controller
           'wc' => 'nullable|integer',
           'quantity' => 'nullable|integer',
           'available' => 'required|boolean',
-          'images' => 'required|array', // Ensure images are required
-          'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate each image
+          'images' => 'required|array', 
+          'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', 
       ]);
   
       $user_id = auth()->id();
@@ -88,14 +89,14 @@ class HouseController extends Controller
           return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
       }
   
-      $imagePaths = [];
+      $imageUrls = [];
       foreach ($request->file('images') as $image) {
-          $path = $image->store('images', 'public');
-          $imagePaths[] = $path;
+          $path = $image->store('images', 'public'); 
+          $imageUrls[] = Storage::url($path); 
       }
   
       $house = house::create([
-          'path' => json_encode($imagePaths), 
+          'url' => $imageUrls, 
           'name' => $request->name,
           'price' => $request->price,
           'description' => $request->description,
