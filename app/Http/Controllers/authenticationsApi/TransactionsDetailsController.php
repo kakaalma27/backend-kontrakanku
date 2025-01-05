@@ -26,12 +26,10 @@ class TransactionsDetailsController extends Controller
 
       try {
         
-          // Temukan model yang diperlukan
           $house = House::find($request->house_id);
           $booking = UserBookingHouse::find($request->booking_id);
           $payment = Transaction::find($request->payment_id); // Perbaiki dari $request->booking_id ke $request->payment_id
 
-          // Buat detail transaksi
           $transaksiDetails = TransactionsDetails::create([
               'user_id' => auth()->id(),
               'house_id' => $house->id,

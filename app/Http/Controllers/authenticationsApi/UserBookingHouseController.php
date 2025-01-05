@@ -4,7 +4,6 @@ namespace App\Http\Controllers\authenticationsApi;
 
 use Carbon\Carbon;
 use App\Models\house;
-use App\Models\houseBooking;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;

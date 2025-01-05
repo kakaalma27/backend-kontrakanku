@@ -8,6 +8,7 @@ use App\Http\Controllers\authenticationsApi\HouseImageController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
 use App\Http\Controllers\authenticationsApi\OwnerResponseController;
+use App\Http\Controllers\authenticationsApi\UserBookmarkController;
 use App\Http\Controllers\authenticationsApi\UserComplaintController;
 use App\Models\transactionsDetails;
 
@@ -46,7 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::middleware('auth:sanctum')
-  ->prefix('user-bookings')
+  ->prefix('user-bookmark')
+  ->group(function () {
+    Route::get('/get-all', [UserBookmarkController::class, 'listBookmarks']);
+    Route::post('/add-bookmark', [UserBookmarkController::class, 'addBookmark']);
+    Route::delete('/delete-bookmark', [UserBookmarkController::class, 'deleteBookmark']);
+  });
+
+  Route::middleware('auth:sanctum')
+  ->prefix('user-bookmark')
   ->group(function () {
     Route::post('/store', [UserBookingHouseController::class, 'store']);
   });
@@ -76,7 +85,6 @@ Route::middleware('auth:sanctum')
   ->group(function () {
     Route::get('/cek-data', [UserComplaintController::class, 'index']);
     Route::post('/store', [UserComplaintController::class, 'store']);
-
   });
 
   Route::middleware('auth:sanctum')
