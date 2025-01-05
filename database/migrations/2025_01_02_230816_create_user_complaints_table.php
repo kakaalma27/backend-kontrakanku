@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('user_complaints', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('user_id');
-            $table->bigInteger('transaksi_detail_id')->default(0);
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
+            $table->text('owner_response')->nullable();
             $table->enum('status', ['pending', 'resolved', 'rejected'])->default('pending');
             $table->softDeletes();
             $table->timestamps();

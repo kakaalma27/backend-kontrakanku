@@ -89,13 +89,16 @@ class HouseController extends Controller
           return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
       }
       $imageUrls = [];
-      foreach ($request->file('images') as $image) {
-          $path = $image->storeAs('public/images', $image->getClientOriginalName());
-          $imageUrls[] = asset('storage/images/' . $image->getClientOriginalName());
+      if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('images', 'public'); 
+            $imgUrl = Storage::disk('public')->url($path); 
+            $imageUrls[] = $imgUrl; 
+        }
       }
-  
+
       $house = house::create([
-        'path' => $imageUrls,
+        'path' => json_encode($imageUrls),
         'name' => $request->name,
         'price' => $request->price,
         'description' => $request->description,
@@ -112,25 +115,58 @@ class HouseController extends Controller
 
   public function update(Request $request, $id)
   {
-    // Validasi input
-    $request->validate([
-      'name' => 'required|string|max:255',
-      'price' => 'required|numeric',
-      'description' => 'nullable|string',
-      'tags' => 'nullable|string',
-      'kamar' => 'nullable|integer',
-      'wc' => 'nullable|integer',
-      'quantity' => 'nullable|integer',
-      'available' => 'required|boolean',
-      'user_id' => 'required|exists:users,id',
-    ]);
-
-    // Temukan rumah berdasarkan ID
-    $house = house::findOrFail($id);
-    $house->update($request->all());
-
-    return ResponseFormatter::success($house, 'Data rumah berhasil diperbarui');
+      $house = house::findOrFail($id);
+  
+      $request->validate([
+          'name' => 'required|string|max:255',
+          'price' => 'required|numeric',
+          'description' => 'nullable|string',
+          'tags' => 'nullable|string',
+          'kamar' => 'nullable|integer',
+          'wc' => 'nullable|integer',
+          'quantity' => 'nullable|integer',
+          'available' => 'required|boolean',
+          'images' => 'nullable|array',
+          'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+          'remove_images' => 'nullable|array',
+          'remove_images.*' => 'nullable|string', 
+      ]);
+  
+      $existingImages = json_decode($house->path, true) ?? [];
+      if ($request->filled('remove_images')) {
+          foreach ($request->remove_images as $imageToRemove) {
+              if (($key = array_search($imageToRemove, $existingImages)) !== false) {
+                  $filePath = str_replace(Storage::disk('public')->url(''), '', $imageToRemove);
+                  Storage::disk('public')->delete($filePath);
+  
+                  unset($existingImages[$key]);
+              }
+          }
+      }
+  
+      if ($request->hasFile('images')) {
+          foreach ($request->file('images') as $image) {
+              $path = $image->store('images', 'public');
+              $imgUrl = Storage::disk('public')->url($path);
+              $existingImages[] = $imgUrl;
+          }
+      }
+  
+      $house->update([
+          'name' => $request->name,
+          'price' => $request->price,
+          'description' => $request->description,
+          'tags' => $request->tags,
+          'kamar' => $request->kamar,
+          'wc' => $request->wc,
+          'quantity' => $request->quantity,
+          'available' => $request->available,
+          'path' => json_encode(array_values($existingImages)), // Simpan gambar terbaru
+      ]);
+  
+      return ResponseFormatter::success($house, 'Data rumah berhasil diperbarui');
   }
+  
 
   public function destroy($id)
   {

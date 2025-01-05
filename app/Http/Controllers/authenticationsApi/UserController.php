@@ -2,25 +2,69 @@
 
 namespace App\Http\Controllers\authenticationsApi;
 
+use Exception;
 use App\Models\User;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Http\Request;
+use App\Models\PasswordReset;
 use Illuminate\Support\Carbon;
+use Laravel\Sanctum\HasApiTokens;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Models\PasswordReset;
-use Exception;
+use Illuminate\Support\Facades\Storage;
+
 class UserController extends Controller
 {
   public function fetch(Request $request)
   {
     return ResponseFormatter::success($request->user(), 'Data profile user berhasil diambil');
   }
+  public function editProfile(Request $request)
+  {
+      try {
+          $request->validate([
+              'name' => 'required|string|max:255',
+              'username' => 'required|string|max:255|unique:users,username,' . Auth::id(),
+              'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
+              'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+          ]);
+  
+          $user = Auth::user();
+  
+          $user->name = $request->name;
+          $user->username = $request->username;
+          $user->email = $request->email;
+  
+          if ($request->hasFile('profile_photo_path')) {
+            $image = $request->file('profile_photo_path'); // Ambil file foto profil
+            $path = $image->store('profile_photos', 'public'); // Simpan ke folder public/profile_photos
+            $imgUrl = Storage::disk('public')->url($path); // Dapatkan URL publik
 
+            $user->profile_photo_path = $imgUrl;
+        }
+
+          $user->save();
+  
+          return ResponseFormatter::success(
+              $user,
+              'Profil berhasil diperbarui'
+          );
+      } catch (Exception $error) {
+          Log::error($error->getMessage());
+          return ResponseFormatter::error(
+              [
+                  'message' => 'Something went wrong',
+                  'error' => $error->getMessage(),
+              ],
+              'Profile Update Failed',
+              500
+          );
+      }
+  }
+  
   public function login(Request $request)
   {
     try {

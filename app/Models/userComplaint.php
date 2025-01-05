@@ -8,14 +8,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class userComplaint extends Model
 {
-    protected $fillable = ['user_id', 'transaksi_detail_id', 'title', 'description', 'status'];
+    protected $fillable = ['user_id', 'title', 'description', 'status'];
     public function user()
     {
       return $this->belongsTo(User::class, 'user_id', 'id');
     }
-  
-    public function transactions()
+
+    public function addresses()
     {
-      return $this->belongsTo(transaction::class, 'transaksi_detail_id', 'id');
+      return $this->belongsTo(address::class, 'user_id', 'id');
+    }
+
+    public function house()
+    {
+      return $this->belongsTo(house::class, 'user_id', 'id');
     }
 }

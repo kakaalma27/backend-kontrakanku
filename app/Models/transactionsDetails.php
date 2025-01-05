@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class transactionsDetails extends Model
 {
   use HasFactory, SoftDeletes;
-  protected $fillable = ['user_id', 'house_id', 'payment_id'];
+  protected $fillable = ['user_id', 'house_id', 'payment_id', 'booking_id'];
 
   public function User()
   {
@@ -18,7 +18,11 @@ class transactionsDetails extends Model
 
   public function houses()
   {
-    return $this->hasMany(house::class, 'user_id', 'id');
+    return $this->hasMany(house::class, 'house_id', 'id');
+  }
+  public function booking()
+  {
+    return $this->hasMany(userBookingHouse::class, 'booking_id', 'id');
   }
 
   public function transactions()

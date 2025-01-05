@@ -7,6 +7,8 @@ use App\Http\Controllers\authenticationsApi\HouseController;
 use App\Http\Controllers\authenticationsApi\HouseImageController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
+use App\Http\Controllers\authenticationsApi\OwnerResponseController;
+use App\Http\Controllers\authenticationsApi\UserComplaintController;
 use App\Models\transactionsDetails;
 
 /*
@@ -29,7 +31,7 @@ Route::prefix('auth')->group(function () {
   Route::post('/reset-password', [UserController::class, 'resetPassword']);
   Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [UserController::class, 'fetch']);
-    Route::put('user', [UserController::class, 'updateProfile']);
+    Route::put('user', [UserController::class, 'editProfile']);
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
@@ -68,3 +70,17 @@ Route::middleware('auth:sanctum')
     Route::delete('/{id}', [HouseController::class, 'destroy']); 
   });
 
+
+  Route::middleware('auth:sanctum')
+  ->prefix('user-complain')
+  ->group(function () {
+    Route::get('/cek-data', [UserComplaintController::class, 'index']);
+    Route::post('/store', [UserComplaintController::class, 'store']);
+
+  });
+
+  Route::middleware('auth:sanctum')
+  ->prefix('ower-response')
+  ->group(function () {
+    Route::post('/store', [OwnerResponseController::class, 'store']);
+  });

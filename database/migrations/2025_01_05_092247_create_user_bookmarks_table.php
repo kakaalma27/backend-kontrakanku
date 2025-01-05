@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('owner_responses', function (Blueprint $table) {
+        Schema::create('user_bookmarks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->bigInteger('complaint_id');
-            $table->text('response');
+            $table->bigInteger('user_id');
+            $table->bigInteger('house_id');
+            $table->text('judul');
+            $table->float('price');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('owner_responses');
+        Schema::dropIfExists('user_bookmarks');
     }
 };

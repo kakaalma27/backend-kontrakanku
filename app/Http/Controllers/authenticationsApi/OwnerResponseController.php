@@ -1,10 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\authenticationsApi;
 
-use App\Models\ownerResponse;
 use Illuminate\Http\Request;
-
+use App\Models\ownerResponse;
+use App\Models\userComplaint;
+use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
 class OwnerResponseController extends Controller
 {
     /**
@@ -28,9 +31,37 @@ class OwnerResponseController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'complaint_id' => 'required|exists:user_complaints,id',
+            'response' => 'required|string',
+        ]);
 
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null, $validator->errors()->first(), 422);
+        }
+
+        try {
+            // Menyimpan respons pemilik
+            $ownerResponse = OwnerResponse::create([
+                'user_id' => auth()->id(),
+                'complaint_id' => $request->complaint_id,
+                'response' => $request->response,
+            ]);
+
+            // Update status keluhan menjadi resolved jika pemilik merespon
+            $complaint = UserComplaint::find($request->complaint_id);
+            if ($complaint) {
+                $complaint->update(['status' => 'resolved']);
+            }
+
+            return ResponseFormatter::success($ownerResponse, 'Respons pemilik berhasil disimpan');
+        } catch (\Exception $e) {
+            return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan respons pemilik', 500);
+        }
+    }
+    
     /**
      * Display the specified resource.
      */
