@@ -1,16 +1,17 @@
 <?php
 
+use App\Models\transactionsDetails;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\authenticationsApi\AddressController;
 use App\Http\Controllers\authenticationsApi\UserController;
 use App\Http\Controllers\authenticationsApi\HouseController;
+use App\Http\Controllers\authenticationsApi\AddressController;
 use App\Http\Controllers\authenticationsApi\HouseImageController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
-use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
-use App\Http\Controllers\authenticationsApi\OwnerResponseController;
 use App\Http\Controllers\authenticationsApi\UserBookmarkController;
+use App\Http\Controllers\authenticationsApi\OwnerResponseController;
 use App\Http\Controllers\authenticationsApi\UserComplaintController;
-use App\Models\transactionsDetails;
+use App\Http\Controllers\authenticationsApi\AddressCategoryController;
+use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,16 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
+// address pemilik dan pengguna
+Route::middleware('auth:sanctum')->prefix('address-categories')->group(function () {
+  Route::post('/', [AddressCategoryController::class, 'store']);
+  Route::get('/', [AddressCategoryController::class, 'index']);
+  Route::get('{id}', [AddressCategoryController::class, 'show']);
+  Route::put('{id}', [AddressCategoryController::class, 'update']);
+  Route::delete('{id}', [AddressCategoryController::class, 'destroy']);
+});
+
+
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/addresses', [AddressController::class, 'index']);
   Route::get('/addresses/all', [AddressController::class, 'allAddresses']); // Melihat semua alamat (Admin Only)
@@ -45,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
 });
 
-
+//pengguna
 Route::middleware('auth:sanctum')
   ->prefix('user-bookmark')
   ->group(function () {
@@ -70,6 +81,7 @@ Route::middleware('auth:sanctum')
     ->group(function () {
       Route::post('/store', [transactionsDetails::class, 'store']);
       });
+// pengguna dan pemilik
 Route::middleware('auth:sanctum')
   ->prefix('houses')
   ->group(function () {
@@ -79,7 +91,7 @@ Route::middleware('auth:sanctum')
     Route::delete('/{id}', [HouseController::class, 'destroy']); 
   });
 
-
+//pengguna
   Route::middleware('auth:sanctum')
   ->prefix('user-complain')
   ->group(function () {
@@ -91,6 +103,7 @@ Route::middleware('auth:sanctum')
 
   });
 
+  //pemilik
   Route::middleware('auth:sanctum')
   ->prefix('ower-response')
   ->group(function () {

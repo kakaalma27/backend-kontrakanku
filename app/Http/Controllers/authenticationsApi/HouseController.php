@@ -70,49 +70,67 @@ class HouseController extends Controller
 
   public function store(Request $request)
   {
-      $request->validate([
-          'name' => 'required|string|max:255',
-          'price' => 'required|numeric',
-          'description' => 'nullable|string',
-          'tags' => 'nullable|string',
-          'kamar' => 'nullable|integer',
-          'wc' => 'nullable|integer',
-          'quantity' => 'nullable|integer',
-          'available' => 'required|boolean',
-          'images' => 'required|array', 
-          'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', 
-      ]);
+      try {
+          $request->validate([
+              'name' => 'required|string|max:255',
+              'price' => 'required|numeric',
+              'description' => 'nullable|string',
+              'tags' => 'nullable|string',
+              'kamar' => 'nullable|integer',
+              'wc' => 'nullable|integer',
+              'quantity' => 'nullable|integer',
+              'available' => 'required|boolean',
+              'images' => 'required|array', 
+              'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', 
+          ]);
   
-      $user_id = auth()->id();
-      $user = User::find($user_id);
-      if (!$user || !in_array($user->role, [1, 2])) {
-          return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
-      }
-      $imageUrls = [];
-      if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $image) {
-            $path = $image->store('images', 'public'); 
-            $imgUrl = Storage::disk('public')->url($path); 
-            $imageUrls[] = $imgUrl; 
-        }
-      }
+          $user_id = auth()->id();
+          $user = User::find($user_id);
+          if (!$user || !in_array($user->role, [1, 2])) {
+              return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
+          }
+          $hasKontrakanAddress = $user->addresses()->where('address_category_id', 2)->exists();
 
-      $house = house::create([
-        'path' => json_encode($imageUrls),
-        'name' => $request->name,
-        'price' => $request->price,
-        'description' => $request->description,
-        'tags' => $request->tags,
-        'kamar' => $request->kamar,
-        'wc' => $request->wc,
-        'quantity' => $request->quantity,
-        'available' => $request->available,
-        'user_id' => $user_id,
-    ]);
+            if ($hasKontrakanAddress && $request->available == true) {
+              return ResponseFormatter::error(null, 'Hanya kontrakan yang tersedia untuk kategori ini', 400);
+          }
+
+          if (!$hasKontrakanAddress && $request->available == true) {
+              return ResponseFormatter::error(null, 'Silakan lengkapi alamat kontrakan terlebih dahulu', 400);
+          }
+          $imageUrls = [];
+          if ($request->hasFile('images')) {
+              foreach ($request->file('images') as $image) {
+                  $path = $image->store('images', 'public'); 
+                  $imgUrl = Storage::disk('public')->url($path); 
+                  $imageUrls[] = $imgUrl; 
+              }
+          }
   
-      return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
+          $house = house::create([
+              'path' => json_encode($imageUrls),
+              'name' => $request->name,
+              'price' => $request->price,
+              'description' => $request->description,
+              'tags' => $request->tags,
+              'kamar' => $request->kamar,
+              'wc' => $request->wc,
+              'quantity' => $request->quantity,
+              'available' => $request->available,
+              'user_id' => $user_id,
+          ]);
+  
+          return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
+      } catch (\Exception $e) {
+          // Log error
+          \Log::error('Error storing house: ' . $e->getMessage(), [
+              'request' => $request->all(),
+              'user_id' => auth()->id(),
+          ]);
+  
+          return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan data rumah', 500);
+      }
   }
-
   public function update(Request $request, $id)
   {
       $house = house::findOrFail($id);

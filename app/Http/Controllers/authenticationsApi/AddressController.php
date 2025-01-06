@@ -20,35 +20,45 @@ class AddressController extends Controller
             'alamat' => 'required|string',
             'jalan' => 'required|string',
             'detail' => 'required|string',
+            'address_category_id' => 'required|exists:address_categories,id',
         ]);
-
+    
+        // Cek role pengguna
+        $user = auth()->user();
+        $address_category_id = $request->address_category_id;
+    
+        // Jika role pengguna adalah 0, hanya dapat memilih kategori "utama"
+        if ($user->role == 0 && $address_category_id != 1) {
+            return ResponseFormatter::error(null, 'Anda hanya dapat memilih kategori utama', 403);
+        }
+    
+        // Jika role pengguna adalah 1, bisa memilih kategori utama atau kontrakan
+        if ($user->role == 1 && !in_array($address_category_id, [1, 2])) {
+            return ResponseFormatter::error(null, 'Kategori tidak valid', 403);
+        }
+    
+        // Lanjutkan proses penyimpanan
         $phone = preg_replace('/\D/', '', $request->phone);
-
+    
         if (substr($phone, 0, 1) === '0') {
             $phone = '62' . ltrim($phone, '0');
         } elseif (substr($phone, 0, 2) !== '62') {
             $phone = '62' . $phone;
         }
-
-        $user_id = auth()->id();
-        $user = User::find($user_id);
-
-        if (!$user) {
-            return ResponseFormatter::error(null, 'User not found', 404);
-        }
-
+    
         $address = Address::create([
-            'user_id' => $user_id,
+            'user_id' => $user->id,
             'name' => $user->name,
             'phone' => $phone,
             'alamat' => $request->alamat,
             'jalan' => $request->jalan,
             'detail' => $request->detail,
+            'address_category_id' => $address_category_id,
         ]);
-
+    
         return ResponseFormatter::success($address, 'Alamat berhasil ditambahkan');
     }
-
+    
     /**
      * Update an existing address.
      */

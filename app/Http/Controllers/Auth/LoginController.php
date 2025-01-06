@@ -48,11 +48,11 @@ class LoginController extends Controller
      
         $credentials = $request->only('email', 'password');
     
-        if(auth()->attempt($credentials))
-        {
-            return redirect()->route(auth()->user()->role == '2' ? 'admin.home' : 'home');
+        if (auth()->attempt($credentials)) {
+            if (auth()->user()->role == 2) {
+                return redirect()->route('home'); // Halaman untuk admin
+            } 
         }
-        
         return redirect()
             ->route('login')
             ->withErrors(['email' => 'Email atau password salah.']);

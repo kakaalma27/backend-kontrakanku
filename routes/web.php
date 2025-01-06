@@ -9,7 +9,3 @@ Route::get('/', function () {
 Auth::routes();
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-Route::middleware(['auth','user-role:admin'])->group(function()
-{
-    Route::get("/admin/home",[HomeController::class, 'adminHome'])->name("admin.home");
-});
