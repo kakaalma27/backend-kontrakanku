@@ -11,9 +11,13 @@ class house extends Model
   use HasFactory, SoftDeletes;
   protected $fillable = ['path','name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity'];
 
-  public function addresses()
+  public function user()
   {
-    return $this->belongsTo(address::class, 'user_id', 'id');
+    return $this->belongsToMany(User::class, 'user_id', 'id');
   }
 
+  public function addresses()
+  {
+    return $this->hasOne(address::class, 'house_id', 'id'); // Relasi one-to-one dengan Address
+  }
 }

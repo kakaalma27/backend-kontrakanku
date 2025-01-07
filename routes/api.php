@@ -11,6 +11,7 @@ use App\Http\Controllers\authenticationsApi\UserBookmarkController;
 use App\Http\Controllers\authenticationsApi\OwnerResponseController;
 use App\Http\Controllers\authenticationsApi\UserComplaintController;
 use App\Http\Controllers\authenticationsApi\AddressCategoryController;
+use App\Http\Controllers\authenticationsApi\OwnerHandleController;
 use App\Http\Controllers\authenticationsApi\OwnerTargetKeuanganController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
 
@@ -38,14 +39,7 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
-// address pemilik dan pengguna
-Route::middleware('auth:sanctum')->prefix('address-categories')->group(function () {
-  Route::post('/', [AddressCategoryController::class, 'store']);
-  Route::get('/', [AddressCategoryController::class, 'index']);
-  Route::get('{id}', [AddressCategoryController::class, 'show']);
-  Route::put('{id}', [AddressCategoryController::class, 'update']);
-  Route::delete('{id}', [AddressCategoryController::class, 'destroy']);
-});
+
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -67,7 +61,7 @@ Route::middleware('auth:sanctum')
   });
 
   Route::middleware('auth:sanctum')
-  ->prefix('user-bookmark')
+  ->prefix('user-booking')
   ->group(function () {
     Route::post('/store', [UserBookingHouseController::class, 'store']);
   });
@@ -106,7 +100,7 @@ Route::middleware('auth:sanctum')
 
   //pemilik
   Route::middleware('auth:sanctum')
-  ->prefix('ower-response')
+  ->prefix(prefix: 'owner-response')
   ->group(function () {
         Route::get('/{complaintId}', [OwnerResponseController::class, 'index']);
         Route::post('/{complaintId}/store', [OwnerResponseController::class, 'store']);
@@ -116,7 +110,13 @@ Route::middleware('auth:sanctum')
   });
 
   Route::middleware('auth:sanctum')
-  ->prefix('ower-target')
+  ->prefix('owner-target')
   ->group(function () {
     Route::post('/store', [OwnerTargetKeuanganController::class, 'store']);
+  });
+
+  Route::middleware('auth:sanctum')
+  ->prefix('owner-handle')
+  ->group(function () {
+    Route::get('/getBooking', [OwnerHandleController::class, 'getBooking']);
   });

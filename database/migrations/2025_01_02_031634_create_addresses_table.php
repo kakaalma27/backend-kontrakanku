@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
-            $table->bigInteger('address_categotie_id')->nullable();
-            $table->string('name')->nullable();
-            $table->string('phone')->nullable();
-            $table->longText('alamat')->nullable();
-            $table->longText('detail')->nullable();
+            $table->bigInteger('house_id')->nullable();
+            $table->string('category');
+            $table->string('name');
+            $table->string('phone');
+            $table->longText('alamat');
+            $table->longText('detail');
             $table->softDeletes();
             $table->timestamps();
         });

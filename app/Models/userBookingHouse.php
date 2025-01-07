@@ -17,6 +17,6 @@ class userBookingHouse extends Model
   
     public function house()
     {
-      return $this->belongsTo(house::class, 'house_id', 'id');
+      return $this->hasOne(house::class, 'house_id', 'id');
     }
 }

@@ -33,6 +33,7 @@ class UserBookingHouseController extends Controller
         $booking = userBookingHouse::create([
           'user_id' => auth()->id(),
           'house_id' => $house->id,
+          'status' => 'pending',
           'start_date' => $request->start_date,
           'end_date' => $request->end_date,
       ]);
