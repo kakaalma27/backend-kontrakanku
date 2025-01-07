@@ -18,9 +18,9 @@ class AddressController extends Controller
         try {
             // Validate the incoming request
             $request->validate([
+                'name' => 'required|string',
                 'phone' => 'required|string',
                 'alamat' => 'required|string',
-                'jalan' => 'required|string',
                 'detail' => 'required|string',
                 'address_categotie_id' => 'required|exists:address_categories,id',
             ]);
@@ -50,9 +50,9 @@ class AddressController extends Controller
             // Create the address
             $address = Address::create([
                 'user_id' => $user->id,
-                'phone' => $phone,
+                'name' => $request->alamat,
+                'phone' => $request->$phone,
                 'alamat' => $request->alamat,
-                'jalan' => $request->jalan,
                 'detail' => $request->detail,
                 'address_categotie_id' => $address_categotie_id,
             ]);
@@ -70,10 +70,11 @@ class AddressController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'phone' => 'sometimes|string',
-            'alamat' => 'sometimes|string',
-            'jalan' => 'sometimes|string',
-            'detail' => 'sometimes|string',
+            'name' => 'required|string',
+            'phone' => 'required|string',
+            'alamat' => 'required|string',
+            'detail' => 'required|string',
+            'address_categotie_id' => 'required|exists:address_categories,id',
         ]);
 
         $address = Address::find($id);
