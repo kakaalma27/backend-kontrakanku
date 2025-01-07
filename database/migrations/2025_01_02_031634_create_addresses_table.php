@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('user_id');
             $table->bigInteger('address_categotie_id')->nullable();
-            $table->string('name')->nullable();
             $table->string('phone')->nullable();
             $table->longText('alamat')->nullable();
             $table->longText('jalan')->nullable();

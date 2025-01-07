@@ -23,7 +23,6 @@ class AddressController extends Controller
             'address_category_id' => 'required|exists:address_categories,id',
         ]);
     
-        // Cek role pengguna
         $user = auth()->user();
         $address_category_id = $request->address_category_id;
     
@@ -48,7 +47,6 @@ class AddressController extends Controller
     
         $address = Address::create([
             'user_id' => $user->id,
-            'name' => $user->name,
             'phone' => $phone,
             'alamat' => $request->alamat,
             'jalan' => $request->jalan,

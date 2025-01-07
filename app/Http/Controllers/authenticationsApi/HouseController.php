@@ -85,7 +85,7 @@ class HouseController extends Controller
           ]);
   
           $user_id = auth()->id();
-          $user = User::find($user_id);
+          $user = User::findOrFail($user_id);
           if (!$user || !in_array($user->role, [1, 2])) {
               return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
           }

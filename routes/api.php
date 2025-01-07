@@ -87,7 +87,7 @@ Route::middleware('auth:sanctum')
   ->group(function () {
     Route::get('/get-all', [HouseController::class, 'all']);
     Route::post('/store', [HouseController::class, 'store']);
-    Route::put('/{id}', [HouseController::class, 'update']); 
+    Route::post('/{id}', [HouseController::class, 'update']); 
     Route::delete('/{id}', [HouseController::class, 'destroy']); 
   });
 
