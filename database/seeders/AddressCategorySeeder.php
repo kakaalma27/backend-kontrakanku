@@ -16,7 +16,7 @@ class AddressCategorySeeder extends Seeder
         addressCategory::create([
             'user_id' => 3,
             'utama' => 'Utama',
-            'phone' => 'Kontrakan',
+            'kontrakan' => 'Kontrakan',
         ]);
     }
 }

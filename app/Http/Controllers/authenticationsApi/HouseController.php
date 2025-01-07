@@ -87,17 +87,9 @@ class HouseController extends Controller
           $user_id = auth()->id();
           $user = User::findOrFail($user_id);
           if (!$user || !in_array($user->role, [1, 2])) {
-              return ResponseFormatter::error(null, 'Opps, kamu tidak memiliki izin', 403);
-          }
-          $hasKontrakanAddress = $user->addresses()->where('address_category_id', 2)->exists();
-
-            if ($hasKontrakanAddress && $request->available == true) {
-              return ResponseFormatter::error(null, 'Hanya kontrakan yang tersedia untuk kategori ini', 400);
+              return ResponseFormatter::error(null, 'Opps, Hanya Pemilik Kontrakan!', 403);
           }
 
-          if (!$hasKontrakanAddress && $request->available == true) {
-              return ResponseFormatter::error(null, 'Silakan lengkapi alamat kontrakan terlebih dahulu', 400);
-          }
           $imageUrls = [];
           if ($request->hasFile('images')) {
               foreach ($request->file('images') as $image) {

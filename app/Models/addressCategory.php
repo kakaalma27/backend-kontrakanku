@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class addressCategory extends Model
 {
     use HasFactory;
-    protected $fillable = ['utama','kontrakan', ];
+    protected $fillable = ['user_id', 'utama','kontrakan', ];
 }

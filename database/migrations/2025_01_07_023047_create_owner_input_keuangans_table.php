@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('owner_target_keuangans', function (Blueprint $table) {
+        Schema::create('owner_input_keuangans', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
-            $table->string('total');
-            $table->float(column: 'price');
+            $table->string('metode')->default('cash');
+            $table->float('uang');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('owner_target_keuangans');
+        Schema::dropIfExists('owner_input_keuangans');
     }
 };

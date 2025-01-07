@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('address_categories', function (Blueprint $table) {
+        Schema::create('owner_target_keuangans', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
-            $table->string('utama');
-            $table->string('kontrakan');
+            $table->string('total');
+            $table->string('uang');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('address_categories');
+        Schema::dropIfExists('owner_target_keuangans');
     }
 };

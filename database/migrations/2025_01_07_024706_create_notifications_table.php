@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('address_categories', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('user_id');
-            $table->string('utama');
-            $table->string('kontrakan');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('address_categories');
+        Schema::dropIfExists('notifications');
     }
 };

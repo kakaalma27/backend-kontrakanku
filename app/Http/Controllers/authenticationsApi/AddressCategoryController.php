@@ -61,6 +61,7 @@ class AddressCategoryController extends Controller
         }
 
         $addressCategory->update([
+            'user_id' => auth()->id(), 
             'utama' => $request->utama,
             'phone' => $request->kontrakan,
         ]);

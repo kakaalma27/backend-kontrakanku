@@ -11,6 +11,7 @@ use App\Http\Controllers\authenticationsApi\UserBookmarkController;
 use App\Http\Controllers\authenticationsApi\OwnerResponseController;
 use App\Http\Controllers\authenticationsApi\UserComplaintController;
 use App\Http\Controllers\authenticationsApi\AddressCategoryController;
+use App\Http\Controllers\authenticationsApi\OwnerTargetKeuanganController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
 
 /*
@@ -112,4 +113,10 @@ Route::middleware('auth:sanctum')
         Route::get('/{complaintId}/{id}', [OwnerResponseController::class, 'show']);
         Route::put('/{complaintId}/{id}', [OwnerResponseController::class, 'update']);
         Route::delete('/{complaintId}/{id}', [OwnerResponseController::class, 'destroy']);
+  });
+
+  Route::middleware('auth:sanctum')
+  ->prefix('ower-target')
+  ->group(function () {
+    Route::post('/store', [OwnerTargetKeuanganController::class, 'store']);
   });
