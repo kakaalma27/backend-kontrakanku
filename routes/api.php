@@ -119,4 +119,5 @@ Route::middleware('auth:sanctum')
   ->prefix('owner-handle')
   ->group(function () {
     Route::get('/getBooking', [OwnerHandleController::class, 'getBooking']);
+    Route::put('/handleBooking/{id}', [OwnerHandleController::class, 'handleBooking']);
   });
