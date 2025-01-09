@@ -40,37 +40,38 @@ class OwnerResponseController extends Controller
         $validator = Validator::make($request->all(), [
             'response' => 'required|string',
         ]);
-
+    
         if ($validator->fails()) {
             return ResponseFormatter::error(null, $validator->errors()->first(), 422);
         }
-
+    
         try {
             $complaint = UserComplaint::find($complaintId);
-
+    
             if (!$complaint) {
                 return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
             }
-
-            // Cek apakah pengguna adalah pemilik properti
+    
             $user = auth()->user();
-            if ($user->id != $complaint->transaksiDetail->house->owner_id) {
+            $houseOwnerId = $complaint->transaksiDetail->house->owner_id;  // Cek pemilik rumah
+    
+            if ($user->id != $houseOwnerId) {
                 return ResponseFormatter::error(null, 'Anda bukan pemilik properti ini', 403);
             }
-
+    
             $ownerResponse = OwnerResponse::create([
                 'complaint_id' => $complaintId,
                 'response' => $request->response,
-                'owner_id' => $user->id,
+                'owner_id' => $user->id,  // ID pemilik rumah
             ]);
-
+    
             return ResponseFormatter::success($ownerResponse, 'Respon berhasil dikirim');
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan respon', 500);
         }
     }
-
+    
     /**
      * Display the specified response.
      */

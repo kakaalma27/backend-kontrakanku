@@ -6,6 +6,7 @@ use App\Models\house;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Models\address;
 use Illuminate\Support\Facades\Storage;
 
 class HouseController extends Controller
@@ -89,7 +90,10 @@ class HouseController extends Controller
           if (!$user || !in_array($user->role, [1, 2])) {
               return ResponseFormatter::error(null, 'Opps, Hanya Pemilik Kontrakan!', 403);
           }
-
+          $address = Address::where('user_id', $user_id)->first();
+          if (!$address) {
+              return ResponseFormatter::error(null, 'Opps, Tambah Alamat terlebih dahulu!', 403);
+          } 
           $imageUrls = [];
           if ($request->hasFile('images')) {
               foreach ($request->file('images') as $image) {
@@ -110,11 +114,10 @@ class HouseController extends Controller
               'quantity' => $request->quantity,
               'available' => $request->available,
               'user_id' => $user_id,
+              'address_id' => $address->id,
           ]);
-  
           return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
       } catch (\Exception $e) {
-          // Log error
           \Log::error('Error storing house: ' . $e->getMessage(), [
               'request' => $request->all(),
               'user_id' => auth()->id(),

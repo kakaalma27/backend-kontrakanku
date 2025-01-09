@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Models\house;
+use App\Models\ownerResponse;
+use App\Models\transactionsDetails;
 use Illuminate\Support\Facades\Log;
 
 class UserComplaintController extends Controller
@@ -17,13 +20,48 @@ class UserComplaintController extends Controller
     public function index()
     {
         try {
-            $complaints = UserComplaint::where('user_id', auth()->id())->get();
-            return ResponseFormatter::success($complaints, 'Daftar keluhan berhasil diambil');
+            $user = auth()->id();
+            
+            $cekUserHouse = transactionsDetails::where('user_id', $user)->first(); 
+    
+            if ($cekUserHouse) {
+                // Check if the house exists before attempting to get addresses
+                $house = house::find($cekUserHouse->house_id);
+                
+                if ($house) {
+                    $address = $house->addresses()->select('user_id', 'name')->first();
+                    
+                    $complaints = UserComplaint::where('user_id', $user)->get();
+                    
+                    $data = [
+                        'user_id' => $address->user_id,
+                        'name' => $address->name,
+                        'penyewa' => $complaints
+                    ];
+    
+                    return ResponseFormatter::success($data, 'Data Pemilik Kontrakan');
+                } else {
+                    return ResponseFormatter::error(null, 'Rumah tidak ditemukan', 404);
+                }
+            } else {
+                $cekUserHouse = transactionsDetails::where('user_id', $user);
+    
+                if ($cekUserHouse->exists()) {
+                    $complaints = UserComplaint::where('user_id', $user)->get();
+                    return ResponseFormatter::success($complaints, 'Daftar keluhan berhasil diambil');
+                } else {
+                    return ResponseFormatter::error(null, 'Tidak dapat mengirim keluhan', 500);
+                }
+            }
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return ResponseFormatter::error(null, 'Gagal mengambil daftar keluhan', 500);
         }
     }
+    
+    
+    
+    
 
     /**
      * Store a newly created complaint.
@@ -31,81 +69,45 @@ class UserComplaintController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'transaksi_detail_id' => 'required|exists:user_transactions_details_houses,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
-
+    
         if ($validator->fails()) {
             return ResponseFormatter::error(null, $validator->errors()->first(), 422);
         }
-
+    
         try {
             $pengguna = auth()->id();
+    
+            // Cari transaksi untuk mendapatkan house_id dan user_id pemilik
+            $cekUserHouse = transactionsDetails::where('user_id', $pengguna)->first();
+    
+            if (!$cekUserHouse) {
+                return ResponseFormatter::error(null, 'Tidak ada transaksi terkait dengan pengguna ini', 500);
+            }
+    
+            // Ambil user_id pemilik kontrakan dari alamat rumah
+            $owner_id = house::find($cekUserHouse->house_id)->addresses()->select('user_id')->first()->user_id;
+    
+            // Buat keluhan baru
             $complaint = UserComplaint::create([
-                'user_id' => $pengguna,
-                'transaksi_detail_id' => $request->transaksi_detail_id,
+                'user_id' => $pengguna, // Penyewa
                 'title' => $request->title,
                 'description' => $request->description,
                 'status' => 'pending',
             ]);
-
+    
             return ResponseFormatter::success($complaint, 'Keluhan berhasil dibuat');
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan keluhan', 500);
         }
     }
+    
+    
+    
 
-    /**
-     * Display the specified complaint.
-     */
-    public function show($id)
-    {
-        try {
-            $complaint = UserComplaint::where('user_id', auth()->id())->find($id);
-
-            if (!$complaint) {
-                return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
-            }
-
-            return ResponseFormatter::success($complaint, 'Detail keluhan berhasil diambil');
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return ResponseFormatter::error(null, 'Gagal mengambil detail keluhan', 500);
-        }
-    }
-
-    /**
-     * Update the specified complaint.
-     */
-    public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'status' => 'sometimes|required|in:pending,in_progress,completed,rejected',
-        ]);
-
-        if ($validator->fails()) {
-            return ResponseFormatter::error(null, $validator->errors()->first(), 422);
-        }
-
-        try {
-            $complaint = UserComplaint::where('user_id', auth()->id())->find($id);
-
-            if (!$complaint) {
-                return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
-            }
-
-            $complaint->update($request->only(['title', 'description', 'status']));
-
-            return ResponseFormatter::success($complaint, 'Keluhan berhasil diperbarui');
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return ResponseFormatter::error(null, 'Gagal memperbarui keluhan', 500);
-        }
-    }
 
     /**
      * Remove the specified complaint.

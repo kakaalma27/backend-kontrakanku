@@ -14,13 +14,20 @@ class CreateAddressSeeder extends Seeder
     public function run(): void
     {
         Address::create([
-            'name' => 'alma Muhamad Apriana',
+            'name' => 'Kakaalma Muhamad Apriana',
             'phone' => '0851564591910',
             'alamat' => 'Jl Awipari Rt 05 Rw 07.',
             'detail' => '',
             'category' => 'kontrakan', 
             'user_id' => 1,
-            'house_id' => 1
+        ]);
+        Address::create([
+            'name' => 'Kaka Muhamad Apriana',
+            'phone' => '0851564591910',
+            'alamat' => 'Jl Awipari Rt 05 Rw 07.',
+            'detail' => '',
+            'category' => 'kontrakan', 
+            'user_id' => 2,
         ]);
     }
 }

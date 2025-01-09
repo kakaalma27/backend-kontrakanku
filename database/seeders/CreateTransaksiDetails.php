@@ -15,8 +15,8 @@ class CreateTransaksiDetails extends Seeder
 
         TransactionsDetails::create([
             'user_id' => 1,
-            'house_id' => 6,
-            'booking_id' => 1,
+            'house_id' => 1,
+            'booking_id' => 2,
             'payment_id' => 1,
         ]);
 

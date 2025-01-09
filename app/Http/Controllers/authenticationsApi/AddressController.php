@@ -22,23 +22,20 @@ class AddressController extends Controller
                 'phone' => 'required|string',
                 'alamat' => 'required|string',
                 'detail' => 'required|string',
-                'address_categotie_id' => 'required|exists:address_categories,id',
+                'category' => 'required|string',
             ]);
         
             $user = auth()->user();
-            $address_categotie_id = $request->address_categotie_id;
+            $category = $request->category;
         
-            // Check user role and address category
-            if ($user->role == 0 && $address_categotie_id != 1) {
+            if ($user->role == 0 && $category != 1) {
                 return ResponseFormatter::error(null, 'Anda hanya dapat memilih kategori utama', 403);
             }
         
-            // If user role is 1, they can choose either main category or rental
-            if ($user->role == 1 && !in_array($address_categotie_id, [1, 2])) {
+            if ($user->role == 1 && !in_array($category, [1, 2])) {
                 return ResponseFormatter::error(null, 'Kategori tidak valid', 403);
             }
         
-            // Continue with the storage process
             $phone = preg_replace('/\D/', '', $request->phone);
         
             if (substr($phone, 0, 1) === '0') {
@@ -47,14 +44,13 @@ class AddressController extends Controller
                 $phone = '62' . $phone;
             }
         
-            // Create the address
             $address = Address::create([
                 'user_id' => $user->id,
                 'name' => $request->alamat,
-                'phone' => $request->$phone,
+                'phone' => $phone,
                 'alamat' => $request->alamat,
                 'detail' => $request->detail,
-                'address_categotie_id' => $address_categotie_id,
+                'category' => $category,
             ]);
         
             return ResponseFormatter::success($address, 'Alamat berhasil ditambahkan');

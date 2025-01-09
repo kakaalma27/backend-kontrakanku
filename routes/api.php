@@ -92,9 +92,6 @@ Route::middleware('auth:sanctum')
   ->group(function () {
         Route::get('/', [UserComplaintController::class, 'index']);
         Route::post('/store', [UserComplaintController::class, 'store']);
-        Route::get('/{id}', [UserComplaintController::class, 'show']);
-        Route::put('/{id}', [UserComplaintController::class, 'update']);
-        Route::delete('/{id}', [UserComplaintController::class, 'destroy']);
 
   });
 
@@ -104,9 +101,7 @@ Route::middleware('auth:sanctum')
   ->group(function () {
         Route::get('/{complaintId}', [OwnerResponseController::class, 'index']);
         Route::post('/{complaintId}/store', [OwnerResponseController::class, 'store']);
-        Route::get('/{complaintId}/{id}', [OwnerResponseController::class, 'show']);
-        Route::put('/{complaintId}/{id}', [OwnerResponseController::class, 'update']);
-        Route::delete('/{complaintId}/{id}', [OwnerResponseController::class, 'destroy']);
+
   });
 
   Route::middleware('auth:sanctum')

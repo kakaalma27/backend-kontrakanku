@@ -9,15 +9,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class house extends Model
 {
   use HasFactory, SoftDeletes;
-  protected $fillable = ['path','name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity'];
+  protected $fillable = ['path','name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity', 'address_id'];
 
   public function user()
   {
-    return $this->belongsToMany(User::class, 'user_id', 'id');
+    return $this->belongsTo(User::class, 'user_id', 'id');
   }
 
   public function addresses()
   {
-    return $this->hasOne(address::class, 'house_id', 'id'); // Relasi one-to-one dengan Address
+      return $this->belongsTo(address::class, 'address_id', 'id');
   }
 }

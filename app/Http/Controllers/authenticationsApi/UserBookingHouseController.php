@@ -20,15 +20,23 @@ class UserBookingHouseController extends Controller
       ]);
       $house = house::find($request->house_id);
       $startDate = Carbon::parse($request->start_date);
-      $expectedEndDate = $startDate->copy()->addDays(30);
+      $expectedEndDate = $startDate->copy()->addDays(30);  // Menghitung tanggal yang diharapkan (30 hari setelah start_date)
+      $endDate = Carbon::parse($request->end_date);
       
-      if ($request->end_date != $expectedEndDate->toDateString()) {
-        return ResponseFormatter::error([
-              'end_date' => 'Tanggal berakhir harus 30 hari setelah tanggal booking.'
-        ], 'Booking gagal', 400);
-      }
-      if ($house->quantity <= 0) {
-        return response()->json(['message' => 'Kontrakan Tidak Tersedia'], 400);
+      if ($endDate != $expectedEndDate) {
+          $daysDifference = $expectedEndDate->diffInDays($endDate);
+      
+          if ($endDate < $expectedEndDate) {
+              $daysLeft = $expectedEndDate->diffInDays($endDate);
+              return ResponseFormatter::error([
+                  'end_date' => "Oops, Anda kurang $daysLeft hari untuk mencapai 30 hari."
+              ], 'Booking gagal', 400);
+          } else {
+              $daysExceeded = $endDate->diffInDays($expectedEndDate);
+              return ResponseFormatter::error([
+                  'end_date' => "Oops, Anda melebihi $daysExceeded hari dari tanggal yang diharapkan."
+              ], 'Booking gagal', 400);
+          }
       }
         $booking = userBookingHouse::create([
           'user_id' => auth()->id(),
