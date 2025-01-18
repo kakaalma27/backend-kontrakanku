@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class userRentHouse extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
     protected $fillable = ['user_id', 'house_id', 'start_date', 'end_date'];
     public function user()
     {

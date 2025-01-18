@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('owner_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->bigInteger('complaint_id');
+            $table->foreignId('complaint_id')->constrained('user_complaints')->onDelete('cascade');
             $table->text('response');
-            $table->softDeletes();
             $table->timestamps();
         });
     }

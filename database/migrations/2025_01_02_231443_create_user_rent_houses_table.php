@@ -17,7 +17,6 @@ return new class extends Migration
             $table->bigInteger('house_id');
             $table->date('start_date');
             $table->date('end_date');
-            $table->softDeletes();
             $table->timestamps();
         });
     }

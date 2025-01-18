@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ownerResponse extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
     protected $fillable = ['user_id', 'complaint_id', 'response'];
     public function user()
     {

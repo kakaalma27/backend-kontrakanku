@@ -28,7 +28,7 @@ class OwnerTargetKeuanganController extends Controller
                 'uang' => $request->uang,
             ]);
 
-            return ResponseFormatter::success($ownerResponse, 'Respon berhasil dikirim');
+            return ResponseFormatter::success($ownerResponse, 'Target Keuangan Berhasil diSimpan');
         } catch (\Exception $e) {
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage(), 500);
         }

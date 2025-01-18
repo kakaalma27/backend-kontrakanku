@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class house extends Model
 {
-  use HasFactory, SoftDeletes;
+  use HasFactory;
   protected $fillable = ['path','name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity', 'address_id'];
 
   public function user()
@@ -20,4 +20,10 @@ class house extends Model
   {
       return $this->belongsTo(address::class, 'address_id', 'id');
   }
+  public function bookings() {
+    return $this->hasMany(UserBookingHouse::class);
+}
+public function transactions() {
+  return $this->hasMany(transaction::class);
+}
 }

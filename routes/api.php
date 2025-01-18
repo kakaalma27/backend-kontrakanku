@@ -40,8 +40,6 @@ Route::prefix('auth')->group(function () {
   });
 });
 
-
-
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/addresses', [AddressController::class, 'index']);
   Route::get('/addresses/all', [AddressController::class, 'allAddresses']); // Melihat semua alamat (Admin Only)
@@ -63,7 +61,11 @@ Route::middleware('auth:sanctum')
   Route::middleware('auth:sanctum')
   ->prefix('user-booking')
   ->group(function () {
+    Route::get('/user-bookings', [UserBookingHouseController::class, 'getUserBookings']);
     Route::post('/store', [UserBookingHouseController::class, 'store']);
+    Route::delete('/{id}', [UserBookingHouseController::class, 'destroy']);
+    Route::put('/{id}', [UserBookingHouseController::class, 'updateStatus']);
+
   });
 Route::middleware('auth:sanctum')
   ->prefix('transaksi')
@@ -71,11 +73,7 @@ Route::middleware('auth:sanctum')
     Route::get('/cek-data', [TransactionController::class, 'index']);
     Route::post('/store', [TransactionController::class, 'store']);
     });
-Route::middleware('auth:sanctum')
-    ->prefix('transaksi-details')
-    ->group(function () {
-      Route::post('/store', [transactionsDetails::class, 'store']);
-      });
+
 // pengguna dan pemilik
 Route::middleware('auth:sanctum')
   ->prefix('houses')
@@ -107,12 +105,17 @@ Route::middleware('auth:sanctum')
   Route::middleware('auth:sanctum')
   ->prefix('owner-target')
   ->group(function () {
-    Route::post('/store', [OwnerTargetKeuanganController::class, 'store']);
+    Route::post('/', [OwnerTargetKeuanganController::class, 'store']);
   });
 
   Route::middleware('auth:sanctum')
   ->prefix('owner-handle')
   ->group(function () {
+    Route::put('/handleTransaksi/{id}', [OwnerHandleController::class, 'handleTransaksi']);
+    Route::get('/getTransaksi', [OwnerHandleController::class, 'getTransaksi']);
+    Route::get('/getBookingStatus', [OwnerHandleController::class, 'getBookingStatus']);
     Route::get('/getBooking', [OwnerHandleController::class, 'getBooking']);
     Route::put('/handleBooking/{id}', [OwnerHandleController::class, 'handleBooking']);
+    Route::get('/getTransaksiStatus', [OwnerHandleController::class, 'getTransaksiStatus']);
+    Route::get('/checkResolvedStatus', [OwnerHandleController::class, 'checkResolvedStatus']);
   });

@@ -53,7 +53,7 @@ class OwnerResponseController extends Controller
             }
     
             $user = auth()->user();
-            $houseOwnerId = $complaint->transaksiDetail->house->owner_id;  // Cek pemilik rumah
+            $houseOwnerId = $complaint->transaksiDetail->house->owner_id;  
     
             if ($user->id != $houseOwnerId) {
                 return ResponseFormatter::error(null, 'Anda bukan pemilik properti ini', 403);

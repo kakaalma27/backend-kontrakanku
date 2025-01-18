@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class userNotifications extends Model
 {
-  use HasFactory, SoftDeletes;
+  use HasFactory;
   protected $fillable = ['user_id', 'title', 'massage'];
 
   public function User()

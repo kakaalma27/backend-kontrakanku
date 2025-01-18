@@ -23,7 +23,6 @@ return new class extends Migration {
       $table->string('quantity');
       $table->bigInteger('user_id');
       $table->bigInteger('address_id')->nullable();;
-      $table->softDeletes();
       $table->timestamps();
     });
   }

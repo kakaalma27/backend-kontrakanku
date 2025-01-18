@@ -21,7 +21,6 @@ class AddressController extends Controller
                 'name' => 'required|string',
                 'phone' => 'required|string',
                 'alamat' => 'required|string',
-                'detail' => 'required|string',
                 'category' => 'required|string',
             ]);
         
@@ -46,7 +45,7 @@ class AddressController extends Controller
         
             $address = Address::create([
                 'user_id' => $user->id,
-                'name' => $request->alamat,
+                'name' => $request->name,
                 'phone' => $phone,
                 'alamat' => $request->alamat,
                 'detail' => $request->detail,
@@ -65,34 +64,59 @@ class AddressController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'phone' => 'required|string',
-            'alamat' => 'required|string',
-            'detail' => 'required|string',
-            'address_categotie_id' => 'required|exists:address_categories,id',
-        ]);
-
-        $address = Address::find($id);
-
-        if (!$address) {
-            return ResponseFormatter::error(null, 'Alamat tidak ditemukan', 404);
-        }
-
-        if ($request->has('phone')) {
+        try {
+            // Validasi data yang diterima
+            $request->validate([
+                'name' => 'required|string',
+                'phone' => 'required|string',
+                'alamat' => 'required|string',
+                'category' => 'required|string',
+            ]);
+    
+            // Cari alamat berdasarkan ID
+            $address = Address::find($id);
+    
+            if (!$address) {
+                return ResponseFormatter::error(null, 'Alamat tidak ditemukan', 404);
+            }
+    
+            // Periksa kategori berdasarkan role pengguna
+            $user = auth()->user();
+            $category = $request->category;
+    
+            if ($user->role == 0 && $category != 1) {
+                return ResponseFormatter::error(null, 'Anda hanya dapat memilih kategori utama', 403);
+            }
+    
+            if ($user->role == 1 && !in_array($category, [1, 2])) {
+                return ResponseFormatter::error(null, 'Kategori tidak valid', 403);
+            }
+    
+            // Proses nomor telepon agar valid
             $phone = preg_replace('/\D/', '', $request->phone);
+    
             if (substr($phone, 0, 1) === '0') {
                 $phone = '62' . ltrim($phone, '0');
             } elseif (substr($phone, 0, 2) !== '62') {
                 $phone = '62' . $phone;
             }
-            $address->phone = $phone;
+    
+            // Update data alamat
+            $address->update([
+                'name' => $request->name,
+                'phone' => $phone,
+                'alamat' => $request->alamat,
+                'detail' => $request->detail ?? '',  // Pastikan detail ada (jika tidak, defaultkan ke kosong)
+                'category' => $category,
+            ]);
+    
+            return ResponseFormatter::success($address, 'Alamat berhasil diperbarui');
+        } catch (\Exception $e) {
+            // Tangani kesalahan yang mungkin terjadi
+            return ResponseFormatter::error(null, 'Terjadi kesalahan: ' . $e->getMessage(), 500);
         }
-
-        $address->update($request->only(['alamat', 'jalan', 'detail']));
-
-        return ResponseFormatter::success($address, 'Alamat berhasil diperbarui');
     }
+    
 
     /**
      * Delete an address.

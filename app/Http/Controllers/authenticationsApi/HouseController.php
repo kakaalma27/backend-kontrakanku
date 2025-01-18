@@ -11,6 +11,69 @@ use Illuminate\Support\Facades\Storage;
 
 class HouseController extends Controller
 {
+  // public function allOwner(Request $request)
+  // {
+  //   $owner_id = auth()->id();
+  //   $id = $request->input('id');
+  //   $name = $request->input('name');
+  //   $limit = $request->input('limit', 10);
+  //   $price_from = $request->input('price_from');
+  //   $price_to = $request->input('price_to');
+  //   $description = $request->input('description');
+  //   $tags = $request->input('tags');
+  //   $kamar = $request->input('kamar');
+  //   $wc = $request->input('wc');
+  //   $available = $request->input('available');
+  //   $quantity = $request->input('quantity');
+  //   $user_id = $request->input('user_id', $owner_id);
+
+  //   if ($id) {
+  //     $house = house::with(['addresses' => function ($query) use ($user_id) {
+  //       $query->where('user_id', $user_id);
+  //   }])->where('user_id', $user_id)->find($id);
+  //     if ($house) {
+  //       return ResponseFormatter::success($house, 'Data kontrakan berhasil diambil');
+  //     } else {
+  //       return ResponseFormatter::error(null, 'Data kontrakan tidak ada', 404);
+  //     }
+  //   }
+
+  //   $houseQuery = house::with(['addresses' => function ($query) use ($user_id) {
+  //     $query->where('user_id', $user_id);
+  // }]);
+
+  // $houseQuery->where('user_id', $user_id); // Filter utama berdasarkan user_id
+
+  //   if ($name) {
+  //     $houseQuery->where('name', 'like', '%' . $name . '%');
+  //   }
+  //   if ($price_from && $price_to) {
+  //     $houseQuery->whereBetween('price', [$price_from, $price_to]);
+  //   }
+  //   if ($description) {
+  //     $houseQuery->where('description', 'like', '%' . $description . '%');
+  //   }
+  //   if ($tags) {
+  //     $houseQuery->where('tags', 'like', '%' . $tags . '%');
+  //   }
+  //   if ($kamar) {
+  //     $houseQuery->where('kamar', 'like', '%' . $kamar . '%');
+  //   }
+  //   if ($quantity) {
+  //     $houseQuery->where('quantity', 'like', '%' . $quantity . '%');
+  //   }
+  //   if ($wc) {
+  //     $houseQuery->where('wc', 'like', '%' . $wc . '%');
+  //   }
+  //   if ($available) {
+  //     $houseQuery->where('available', $available); // Assuming available is a boolean
+  //   }
+  //   if ($user_id) {
+  //     $houseQuery->where('user_id', $user_id);
+  //   }
+
+  //   return ResponseFormatter::success($houseQuery->paginate($limit), 'Data kontrakan berhasil diambil');
+  // }
   public function all(Request $request)
   {
     $id = $request->input('id');
@@ -68,7 +131,6 @@ class HouseController extends Controller
 
     return ResponseFormatter::success($houseQuery->paginate($limit), 'Data kontrakan berhasil diambil');
   }
-
   public function store(Request $request)
   {
       try {
@@ -123,7 +185,12 @@ class HouseController extends Controller
               'user_id' => auth()->id(),
           ]);
   
-          return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan data rumah', 500);
+          // Menampilkan pesan kesalahan yang lebih rinci
+          return ResponseFormatter::error(null, [
+              'message' => 'Terjadi kesalahan saat menyimpan data rumah',
+              'error' => $e->getMessage(), // Menyertakan pesan kesalahan
+              'trace' => $e->getTraceAsString(), // Menyertakan stack trace
+          ], 500);
       }
   }
   public function update(Request $request, $id)

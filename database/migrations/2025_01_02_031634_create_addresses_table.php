@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('phone');
             $table->longText('alamat');
             $table->longText('detail')->nullable();
-            $table->softDeletes();
             $table->timestamps();
         });
     }

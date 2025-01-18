@@ -16,9 +16,9 @@ return new class extends Migration
             $table->bigInteger('user_id');
             $table->bigInteger('house_id');
             $table->enum('status', ['pending', 'resolved', 'rejected'])->default('pending');
+            $table->string('quantity');
             $table->date('start_date');
             $table->date('end_date');
-            $table->softDeletes();
             $table->timestamps();
         });
     }

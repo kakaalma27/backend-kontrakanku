@@ -12,12 +12,12 @@ return new class extends Migration {
   {
     Schema::create('transactions_houses', function (Blueprint $table) {
       $table->id();
-      $table->bigInteger('user_id');
-       $table->bigInteger('booking_id');
+      $table->bigInteger('user_id')->constrained('users')->onDelete('cascade');
+      $table->bigInteger('house_id');
+      $table->bigInteger('booking_id');
       $table->string('payment')->default('cash');
       $table->float('price')->default(0);
       $table->enum('status', ['pending', 'resolved', 'rejected'])->default('pending');
-      $table->softDeletes();
       $table->timestamps();
     });
   }

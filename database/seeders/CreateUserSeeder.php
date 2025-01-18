@@ -22,9 +22,23 @@ class CreateUserSeeder extends Seeder
                'password'=> bcrypt('Batalkan86@'),
             ],
             [
+                'name'=>'salaki Muhamad Apriana',
+                'username'=>'pengguna',
+                'email'=>'salaki@gmail.com',
+                'role'=> 0,
+                'password'=> bcrypt('Batalkan86@'),
+             ],
+            [
                 'name'=>'Kaka Muhamad Apriana',
                 'username'=>'pemilik',
                 'email'=>'kaka@gmail.com',
+                'role'=> 1,
+                'password'=> bcrypt('Batalkan86@'),
+            ],
+            [
+                'name'=>'Kilua Muhamad Apriana',
+                'username'=>'pemilik',
+                'email'=>'Kilua@gmail.com',
                 'role'=> 1,
                 'password'=> bcrypt('Batalkan86@'),
             ],

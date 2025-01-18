@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class userBookmark extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
     protected $fillable = ['user_id', 'house_id'];
     protected $dates = ['deleted_at'];
     public function user()
