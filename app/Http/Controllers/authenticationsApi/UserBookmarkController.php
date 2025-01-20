@@ -71,7 +71,7 @@ class UserBookmarkController extends Controller
         $userId = Auth::id();
 
         $bookmarks = UserBookmark::where('user_id', $userId)
-                                 ->with('house')
+                                 ->with('house.houseImage')
                                  ->get();
 
         return ResponseFormatter::success($bookmarks, 'List of bookmarks retrieved successfully');

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use App\Models\address;
+use App\Models\houseImage;
 use Illuminate\Support\Facades\Storage;
 
 class HouseController extends Controller
@@ -90,7 +91,7 @@ class HouseController extends Controller
     $user_id = $request->input('user_id');
 
     if ($id) {
-      $house = house::with(['addresses'])->find($id);
+      $house = house::with(['houseImage', 'addresses'])->find($id);
 
       if ($house) {
         return ResponseFormatter::success($house, 'Data kontrakan berhasil diambil');
@@ -99,7 +100,7 @@ class HouseController extends Controller
       }
     }
 
-    $houseQuery = house::with(['addresses']);
+    $houseQuery = house::with(['houseImage', 'addresses']);
 
     if ($name) {
       $houseQuery->where('name', 'like', '%' . $name . '%');
@@ -143,30 +144,35 @@ class HouseController extends Controller
               'wc' => 'nullable|integer',
               'quantity' => 'nullable|integer',
               'available' => 'required|boolean',
-              'images' => 'required|array', 
-              'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', 
+              'images' => 'required|array',
+              'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
           ]);
   
+          // Validasi User
           $user_id = auth()->id();
           $user = User::findOrFail($user_id);
           if (!$user || !in_array($user->role, [1, 2])) {
               return ResponseFormatter::error(null, 'Opps, Hanya Pemilik Kontrakan!', 403);
           }
+  
+          // Validasi Address
           $address = Address::where('user_id', $user_id)->first();
           if (!$address) {
               return ResponseFormatter::error(null, 'Opps, Tambah Alamat terlebih dahulu!', 403);
-          } 
+          }
+  
+          // Upload Images
           $imageUrls = [];
           if ($request->hasFile('images')) {
               foreach ($request->file('images') as $image) {
-                  $path = $image->store('images', 'public'); 
-                  $imgUrl = Storage::disk('public')->url($path); 
-                  $imageUrls[] = $imgUrl; 
+                  $path = $image->store('images', 'public'); // Simpan di storage/public/images
+                  $imgUrl = Storage::disk('public')->url($path); // Ambil URL gambar
+                  $imageUrls[] = $imgUrl; // Simpan URL ke array
               }
           }
   
-          $house = house::create([
-              'path' => json_encode($imageUrls),
+          // Buat data House
+          $house = House::create([
               'name' => $request->name,
               'price' => $request->price,
               'description' => $request->description,
@@ -178,21 +184,30 @@ class HouseController extends Controller
               'user_id' => $user_id,
               'address_id' => $address->id,
           ]);
-          return ResponseFormatter::success($house, 'Data rumah berhasil disimpan');
+  
+          // Simpan data gambar ke houseImage
+          foreach ($imageUrls as $imageUrl) {
+              houseImage::create([
+                  'path' => $imageUrl,
+                  'house_id' => $house->id, // Hubungkan dengan house ID
+              ]);
+          }
+  
+          return ResponseFormatter::success($house->load('houseImage'), 'Data rumah berhasil disimpan');
       } catch (\Exception $e) {
           \Log::error('Error storing house: ' . $e->getMessage(), [
               'request' => $request->all(),
               'user_id' => auth()->id(),
           ]);
   
-          // Menampilkan pesan kesalahan yang lebih rinci
           return ResponseFormatter::error(null, [
               'message' => 'Terjadi kesalahan saat menyimpan data rumah',
-              'error' => $e->getMessage(), // Menyertakan pesan kesalahan
-              'trace' => $e->getTraceAsString(), // Menyertakan stack trace
+              'error' => $e->getMessage(),
+              'trace' => $e->getTraceAsString(),
           ], 500);
       }
   }
+  
   public function update(Request $request, $id)
   {
       $house = house::findOrFail($id);

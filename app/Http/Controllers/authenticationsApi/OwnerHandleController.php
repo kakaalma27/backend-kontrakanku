@@ -206,9 +206,9 @@ class OwnerHandleController extends Controller
     
             $transaction = DB::table('transactions_houses')
                 ->join('houses', 'transactions_houses.house_id', '=', 'houses.id')
-                ->join('users', 'houses.user_id', '=', 'users.id') // Gabungkan dengan tabel users untuk mendapatkan nama
-                ->where('houses.user_id', $owner_id) // Filter hanya rumah milik pemilik
-                ->where('transactions_houses.id', $transactionId) // Filter transaksi berdasarkan ID
+                ->join('users', 'houses.user_id', '=', 'users.id') 
+                ->where('houses.user_id', $owner_id) 
+                ->where('transactions_houses.id', $transactionId) 
                 ->select('transactions_houses.*', 'users.name as user_name', 'houses.name as house_name') // Ambil nama pengguna dan rumah
                 ->first();
     

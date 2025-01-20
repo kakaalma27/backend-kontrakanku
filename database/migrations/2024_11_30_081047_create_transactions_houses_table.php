@@ -17,7 +17,7 @@ return new class extends Migration {
       $table->bigInteger('booking_id');
       $table->string('payment')->default('cash');
       $table->float('price')->default(0);
-      $table->enum('status', ['pending', 'resolved', 'rejected'])->default('pending');
+      $table->enum('status', ['menunggu', 'selesai', 'ditolak'])->default('menunggu');
       $table->timestamps();
     });
   }

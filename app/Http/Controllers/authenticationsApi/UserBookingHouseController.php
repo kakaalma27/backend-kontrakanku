@@ -17,16 +17,22 @@ class UserBookingHouseController extends Controller
         try {
             $user_id = auth()->id();
     
-            $user_booking = userBookingHouse::with('house')  
+            $user_booking = userBookingHouse::with('house.houseImage')  
                 ->where('user_id', $user_id)  
                 ->get()
                 ->map(function ($booking) {
+                    $images = $booking->house->houseImage;
+                    $imagePath = !$images->isEmpty() ? $images->first()->path : 'URL Gambar Tidak Tersedia';
+
                     return [
                         'id' => $booking->id,
                         'user_id' => $booking->user_id,
                         'house_id' => $booking->house_id,
-                        'house_name' => $booking->house->name ?? 'Nama Rumah Tidak Tersedia', 
+                        'name_house' => $booking->house->name ?? 'Nama Rumah Tidak Tersedia', 
                         'status' => $booking->status,
+                        'quantity' => $booking->quantity,
+                        'harga' => $booking->house->price, 
+                        'image' => $imagePath, // Menambahkan gambar ke response
                         'start_date' => $booking->start_date,
                         'end_date' => $booking->end_date,
                         'created_at' => $booking->created_at,
@@ -91,10 +97,10 @@ class UserBookingHouseController extends Controller
     
         $house->decrement('quantity', $request->quantity);
     
-        $booking = userBookingHouse::updateOrCreate([
+        $booking = userBookingHouse::create([
             'user_id' => auth()->id(),
             'house_id' => $house->id,
-            'status' => 'pending',
+            'status' => 'menunggu',
         ], [
             'quantity' => $request->quantity,
             'start_date' => $request->start_date,
@@ -109,7 +115,7 @@ class UserBookingHouseController extends Controller
 {
     $booking = userBookingHouse::where('id', $id)
         ->where('user_id', auth()->id())
-        ->where('status', 'pending') // Hanya bisa menghapus booking dengan status 'pending'
+        ->where('status', 'menunggu') 
         ->first();
 
     if (!$booking) {
@@ -133,7 +139,7 @@ class UserBookingHouseController extends Controller
 public function updateStatus(Request $request, $id)
 {
     $request->validate([
-        'status' => 'required|string|in:pending,resolved,rejected', // Sesuaikan dengan status yang ada di enum
+        'status' => 'required|string|in:menunggu,selesai,ditolak', // Sesuaikan dengan status yang ada di enum
     ]);
 
     $booking = userBookingHouse::where('id', $id)

@@ -19,4 +19,7 @@ class userBookmark extends Model
     {
       return $this->belongsTo(house::class, 'house_id', 'id');
     }
+    public function houseImage() {
+      return $this->hasMany(houseImage::class);
+    }
 }

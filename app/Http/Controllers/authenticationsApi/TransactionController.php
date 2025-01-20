@@ -55,14 +55,18 @@ class TransactionController extends Controller
           if (!$booking) {
               return ResponseFormatter::error('Booking tidak ditemukan', 404);
           }
+
+          if ($booking->status === 'menunggu') {
+            return ResponseFormatter::error('Transaksi tidak dapat dilanjutkan karena status booking masih menunggu.', 400);
+        }
           $total_price = $house->price * $booking->quantity;
-          $transaksi = transaction::updateOrCreate([
+          $transaksi = transaction::create([
               'user_id' => auth()->id(),
               'house_id' => $house->id,
               'booking_id' => $booking->id,
               'payment' => $request->payment,
               'price' => $total_price,
-'status' => 'pending',
+                'status' => 'menunggu',
           ]);
 
           return ResponseFormatter::success($transaksi, 'Transaksi Berhasil');

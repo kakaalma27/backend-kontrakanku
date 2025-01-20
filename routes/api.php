@@ -65,7 +65,6 @@ Route::middleware('auth:sanctum')
     Route::post('/store', [UserBookingHouseController::class, 'store']);
     Route::delete('/{id}', [UserBookingHouseController::class, 'destroy']);
     Route::put('/{id}', [UserBookingHouseController::class, 'updateStatus']);
-
   });
 Route::middleware('auth:sanctum')
   ->prefix('transaksi')

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class house extends Model
 {
   use HasFactory;
-  protected $fillable = ['path','name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity', 'address_id'];
+  protected $fillable = ['name', 'price', 'description', 'tags', 'kamar', 'wc', 'available', 'user_id', 'quantity', 'address_id'];
 
   public function user()
   {
@@ -22,8 +22,12 @@ class house extends Model
   }
   public function bookings() {
     return $this->hasMany(UserBookingHouse::class);
-}
-public function transactions() {
-  return $this->hasMany(transaction::class);
-}
+  }
+  public function transactions() {
+    return $this->hasMany(transaction::class);
+  }
+
+  public function houseImage() {
+    return $this->hasMany(houseImage::class);
+  }
 }
