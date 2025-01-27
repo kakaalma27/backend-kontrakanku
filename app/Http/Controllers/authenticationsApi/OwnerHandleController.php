@@ -71,15 +71,7 @@ class OwnerHandleController extends Controller
     
             // Hitung jumlah transaksi berdasarkan status
             $pendingTransactionsCount = transaction::whereIn('house_id', $house_ids)
-                ->where('status', 'pending')
-                ->count();
-    
-            $resolvedTransactionsCount = transaction::whereIn('house_id', $house_ids)
-                ->where('status', 'resolved')
-                ->count();
-    
-            $rejectedTransactionsCount = transaction::whereIn('house_id', $house_ids)
-                ->where('status', 'rejected')
+                ->where('status', 'menunggu')
                 ->count();
     
             // Return jumlah transaksi berdasarkan status
@@ -101,21 +93,20 @@ class OwnerHandleController extends Controller
     {
         $user_id = auth()->id();
     
-        // Ambil data rumah beserta alamat, bookings, dan transactions
-        $houses = House::with(['addresses', 'bookings', 'transactions', 'user'])
+        $houses = House::with(['addresses', 'bookings.user', 'transactions', 'user', 'houseImage'])
             ->whereHas('bookings', function ($query) {
-                $query->where('status', 'resolved'); // Asumsi 'status' ada di tabel bookings
+                $query->where('status', 'selesai');
             })
             ->orWhereHas('transactions', function ($query) {
-                $query->where('status', 'resolved'); // Asumsi 'status' ada di tabel transactions
+                $query->where('status', 'selesai'); 
             })
-            ->where('user_id', $user_id) // Sesuaikan jika ada kolom user_id
+            ->where('user_id', $user_id) 
             ->get();
     
         if ($houses->isEmpty()) {
             return ResponseFormatter::error(
                 null,
-                'Tidak ada data yang resolved',
+                'Tidak ada data yang selesai',
                 404
             );
         }
@@ -124,15 +115,15 @@ class OwnerHandleController extends Controller
         $results = $houses->map(function ($house) {
             return [
                 'name_house' => $house->name,
-                'path' => json_decode($house->path)[0] ?? null,  // Ambil path pertama dari array path
+                'path' => $house->houseImage->isNotEmpty() ? $house->houseImage->first()->path : null,
                 'addresses' => $house->addresses->alamat,
                 'owner_name' => $house->addresses->name,
-                'quantity' => $house->bookings->sum('quantity'),  // Menjumlahkan quantity dari semua bookings
-                'start_date' => $house->bookings->first()->start_date ?? null,  // Mengambil tanggal mulai booking pertama
-                'end_date' => $house->bookings->first()->end_date ?? null,  // Mengambil tanggal selesai booking pertama
-                'metode_embayaran' => $house->transactions->first()->payment ?? null,  // Mengambil metode pembayaran dari transaksi pertama
-                'total_harga' => $house->transactions->first()->price ?? null,  // Mengambil harga dari transaksi pertama
-                'penyewa' => $house->user->name,  // Nama pemilik rumah
+                'quantity' => $house->bookings->sum('quantity'), 
+                'start_date' => $house->bookings->first()->start_date ?? null, 
+                'end_date' => $house->bookings->first()->end_date ?? null,  
+                'metode_embayaran' => $house->transactions->first()->payment ?? null,  
+                'total_harga' => $house->transactions->first()->price ?? null, 
+                'penyewa' => $house->bookings->first()->user->name ?? null,  // Ambil nama penyewa dari booking pertama
             ];
         });
     
@@ -150,7 +141,7 @@ class OwnerHandleController extends Controller
             Log::info('Validating booking status update', ['request' => $request->all()]);
 
             $request->validate([
-                'status' => 'required|in:resolved,rejected',
+                'status' => 'required|in:selesai,ditolak',
             ]);
     
             $user_id = auth()->id();
@@ -168,7 +159,7 @@ class OwnerHandleController extends Controller
             }
     
             $booking = userBookingHouse::find($id);
-            if (!$booking || $booking->status !== 'pending') {
+            if (!$booking || $booking->status !== 'menunggu') {
                 return ResponseFormatter::error(
                     null,
                     'Booking tidak ditemukan atau sudah diproses.',
@@ -199,7 +190,7 @@ class OwnerHandleController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:resolved,rejected', // Validasi status harus "resolved" atau "rejected"
+                'status' => 'required|in:selesai,ditolak', // Validasi status harus "resolved" atau "rejected"
             ]);
     
             $owner_id = auth()->id();
@@ -297,7 +288,7 @@ class OwnerHandleController extends Controller
         
             $owner_house = house::where('user_id', $user_id)->pluck('id');
             $pendingBookingCount = userBookingHouse::whereIn('house_id', $owner_house)
-            ->where('status', 'pending')  // Menambahkan filter berdasarkan status 'pending'
+            ->where('status', 'menunggu')  // Menambahkan filter berdasarkan status 'pending'
             ->count();  // Menghitung jumlah booking dengan status 'pending'
 
             return ResponseFormatter::success(

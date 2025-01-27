@@ -156,62 +156,85 @@ class UserController extends Controller
 
   public function checkEmail(Request $request)
   {
-    $request->validate([
-      'email' => 'required|email|exists:users,email',
-    ]);
-
-    $token = rand(10000, 99999); // Token berupa kode 5 digit
-
-    PasswordReset::updateOrCreate(
-      ['email' => $request->email],
-      [
-        'token' => $token,
-        'is_verified' => false,
-        'attempts' => 0,
-        'created_at' => now(),
-      ]
-    );
-
-    Mail::raw("Kode verifikasi Anda adalah: $token", function ($message) use ($request) {
-      $message->to($request->email)->subject('Kode Verifikasi Reset Password');
-    });
-
-    return ResponseFormatter::success(null, 'Kode verifikasi telah dikirim ke email Anda.');
+      $request->validate([
+          'email' => 'required|email|exists:users,email',
+      ]);
+  
+      $token = rand(10000, 99999); // Token berupa kode 5 digit
+      $createdAt = now('Asia/Jakarta'); // Gunakan waktu dengan timezone eksplisit
+  
+      // Update atau buat token baru, pastikan 'created_at' diperbarui
+      $passwordReset = PasswordReset::updateOrCreate(
+          ['email' => $request->email],
+          [
+              'token' => $token,
+              'is_verified' => false,
+              'attempts' => 0,
+          ]
+      );
+  
+      // Pastikan 'created_at' diperbarui secara manual jika data sudah ada
+      $passwordReset->created_at = $createdAt;
+      $passwordReset->save();
+  
+      // Log informasi debugging
+      \Log::info('Token generated for email: ' . $request->email);
+      \Log::info('Token: ' . $token);
+      \Log::info('Created at (Asia/Jakarta): ' . $createdAt);
+  
+      Mail::raw("Kode verifikasi Anda adalah: $token", function ($message) use ($request) {
+          $message->to($request->email)->subject('Kode Verifikasi Reset Password');
+      });
+  
+      return ResponseFormatter::success($token, 'Kode verifikasi telah dikirim ke email Anda.');
   }
-
-  /**
-   * Tahap 2: Verifikasi Token
-   */
+  
+  
   public function verifyToken(Request $request)
   {
-    $request->validate([
-      'email' => 'required|email|exists:users,email',
-      'token' => 'required|numeric',
-    ]);
-
-    $passwordReset = PasswordReset::where('email', $request->email)->first();
-
-    if (!$passwordReset) {
-      return ResponseFormatter::error(null, 'Email tidak ditemukan.', 404);
-    }
-
-    if ($passwordReset->token != $request->token) {
-      $passwordReset->increment('attempts');
-      return ResponseFormatter::error(null, 'Kode verifikasi salah.', 400);
-    }
-    if (
-      Carbon::parse($passwordReset->created_at)
-        ->addMinutes(10)
-        ->isPast()
-    ) {
-      return ResponseFormatter::error(null, 'Token kedaluwarsa.', 400);
-    }
-
-    $passwordReset->is_verified = true;
-    $passwordReset->save();
-
-    return ResponseFormatter::success(null, 'Kode verifikasi benar. Anda dapat melanjutkan reset password.');
+      $request->validate([
+          'email' => 'required|email|exists:users,email',
+          'token' => 'required|numeric',
+      ]);
+  
+      $passwordReset = PasswordReset::where('email', $request->email)->first();
+  
+      if (!$passwordReset) {
+          return ResponseFormatter::error(null, 'Email tidak ditemukan.', 404);
+      }
+  
+      // Ambil created_at dalam UTC dan konversi ke Asia/Jakarta
+      $createdAtUTC = Carbon::createFromFormat('Y-m-d H:i:s', $passwordReset->created_at, 'UTC');
+      $createdAtJakarta = $createdAtUTC->copy()->setTimezone('Asia/Jakarta');
+      $expiryTime = $createdAtJakarta->copy()->addMinutes(10);
+      $currentTime = now('Asia/Jakarta');
+  
+      // Log informasi debugging
+      \Log::info('Verifying token for email: ' . $request->email);
+      \Log::info('Token provided: ' . $request->token);
+      \Log::info('Token in DB: ' . $passwordReset->token);
+      \Log::info('Created at (UTC): ' . $createdAtUTC);
+      \Log::info('Created at (Asia/Jakarta): ' . $createdAtJakarta);
+      \Log::info('Expiry time (Asia/Jakarta): ' . $expiryTime);
+      \Log::info('Current time (Asia/Jakarta): ' . $currentTime);
+  
+      // Validasi token
+      if ($passwordReset->token != $request->token) {
+          $passwordReset->increment('attempts');
+          return ResponseFormatter::error(null, 'Kode verifikasi salah.', 400);
+      }
+  
+      // Validasi kedaluwarsa
+      if ($expiryTime->isPast()) {
+          return ResponseFormatter::error(null, 'Token kedaluwarsa.', 400);
+      }
+  
+      $passwordReset->is_verified = true;
+      $passwordReset->save();
+  
+      return ResponseFormatter::success(null, 'Kode verifikasi benar. Anda dapat melanjutkan reset password.');
   }
+  
 
   /**
    * Tahap 3: Reset Password

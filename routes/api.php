@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')
 Route::middleware('auth:sanctum')
   ->prefix('transaksi')
   ->group(function () {
+    Route::get('/user-transaksi', [TransactionController::class, 'getUserTransaksi']);
     Route::get('/cek-data', [TransactionController::class, 'index']);
     Route::post('/store', [TransactionController::class, 'store']);
     });
