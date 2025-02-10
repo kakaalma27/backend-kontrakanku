@@ -12,6 +12,8 @@ use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\transaction;
+use App\Models\User;
+use App\Models\userComplaint;
 use Illuminate\Support\Facades\DB;
 class OwnerHandleController extends Controller
 {
@@ -133,6 +135,26 @@ class OwnerHandleController extends Controller
         );
     }
     
+    public function checkBantunStatus(Request $request)
+    {
+        $user_complaint_count = userComplaint::where('owner_id', auth()->id())
+                                            ->where('status', 'menunggu')
+                                            ->count();
+    
+        // Jika ada keluhan yang menunggu
+        if ($user_complaint_count > 0) {
+            return ResponseFormatter::success(
+                $user_complaint_count,
+                'Data berhasil didapatkan'
+            );
+        } else {
+            // Jika tidak ada keluhan yang menunggu
+            return ResponseFormatter::success(
+                0,
+                'Tidak ada keluhan yang menunggu'
+            );
+        }
+    }
     
     
     public function handleBooking(Request $request, $id)
@@ -304,4 +326,46 @@ class OwnerHandleController extends Controller
         }
     }
 
+    public function getPenyewa()
+    {
+        // Ambil data transaksi dengan relasi user dan bookings
+        $data = Transaction::with(['user', 'bookings'])
+            ->where('status', 'selesai') // Filter status transaksi selesai
+            ->whereHas('bookings', function($query) {
+                $query->where('status', 'selesai'); // Filter status bookings selesai
+            })
+            ->get();
+    
+        // Format data sesuai kebutuhan
+        $formattedData = $data->map(function($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->user->name,
+                'kontrakan' => $item->house_id,
+                'masuk' => $item->bookings->start_date,
+                'keluar' => $item->bookings->end_date,
+                'pembayaran' => $item->payment,
+            ];
+        });
+    
+        return ResponseFormatter::success(
+            $formattedData,
+            'Data berhasil diambil'
+        );
+    }
+
+    public function cekStatusPenyewa()
+    {
+        $data = Transaction::with(['user', 'bookings'])
+        ->where('status', 'selesai') // Filter status transaksi selesai
+        ->whereHas('bookings', function($query) {
+            $query->where('status', 'selesai'); // Filter status bookings selesai
+        })
+        ->count();
+
+        return ResponseFormatter::success(
+            $data,
+            'Data berhasil diambil'
+        );
+    }
 }

@@ -95,11 +95,10 @@ Route::middleware('auth:sanctum')
 
   //pemilik
   Route::middleware('auth:sanctum')
-  ->prefix(prefix: 'owner-response')
+  ->prefix('owner-response')
   ->group(function () {
-        Route::get('/{complaintId}', [OwnerResponseController::class, 'index']);
-        Route::post('/{complaintId}/store', [OwnerResponseController::class, 'store']);
-
+      Route::get('/', [OwnerResponseController::class, 'index']);
+      Route::post('/{complaintId}', [OwnerResponseController::class, 'store']);
   });
 
   Route::middleware('auth:sanctum')
@@ -118,4 +117,7 @@ Route::middleware('auth:sanctum')
     Route::put('/handleBooking/{id}', [OwnerHandleController::class, 'handleBooking']);
     Route::get('/getTransaksiStatus', [OwnerHandleController::class, 'getTransaksiStatus']);
     Route::get('/checkResolvedStatus', [OwnerHandleController::class, 'checkResolvedStatus']);
+    Route::get('/checkBantunStatus', [OwnerHandleController::class, 'checkBantunStatus']);
+    Route::get('/getPenyewa', [OwnerHandleController::class, 'getPenyewa']);
+    Route::get('/cekStatusPenyewa', [OwnerHandleController::class, 'cekStatusPenyewa']);
   });

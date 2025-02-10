@@ -24,45 +24,12 @@ class UserController extends Controller
   }
   public function editProfile(Request $request)
   {
-      try {
-          $request->validate([
-              'name' => 'required|string|max:255',
-              'username' => 'required|string|max:255|unique:users,username,' . Auth::id(),
-              'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
-              'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-          ]);
-  
-          $user = Auth::user();
-  
-          $user->name = $request->name;
-          $user->username = $request->username;
-          $user->email = $request->email;
-  
-          if ($request->hasFile('profile_photo_path')) {
-            $image = $request->file('profile_photo_path'); // Ambil file foto profil
-            $path = $image->store('profile_photos', 'public'); // Simpan ke folder public/profile_photos
-            $imgUrl = Storage::disk('public')->url($path); // Dapatkan URL publik
+    $data = $request->all();
 
-            $user->profile_photo_path = $imgUrl;
-        }
+    $user = Auth::user();
+    $user->update($data);
 
-          $user->save();
-  
-          return ResponseFormatter::success(
-              $user,
-              'Profil berhasil diperbarui'
-          );
-      } catch (Exception $error) {
-          Log::error($error->getMessage());
-          return ResponseFormatter::error(
-              [
-                  'message' => 'Something went wrong',
-                  'error' => $error->getMessage(),
-              ],
-              'Profile Update Failed',
-              500
-          );
-      }
+    return ResponseFormatter::success($user,'Profile Updated');
   }
   
   public function login(Request $request)
@@ -177,10 +144,7 @@ class UserController extends Controller
       $passwordReset->created_at = $createdAt;
       $passwordReset->save();
   
-      // Log informasi debugging
-      \Log::info('Token generated for email: ' . $request->email);
-      \Log::info('Token: ' . $token);
-      \Log::info('Created at (Asia/Jakarta): ' . $createdAt);
+
   
       Mail::raw("Kode verifikasi Anda adalah: $token", function ($message) use ($request) {
           $message->to($request->email)->subject('Kode Verifikasi Reset Password');
@@ -209,14 +173,7 @@ class UserController extends Controller
       $expiryTime = $createdAtJakarta->copy()->addMinutes(10);
       $currentTime = now('Asia/Jakarta');
   
-      // Log informasi debugging
-      \Log::info('Verifying token for email: ' . $request->email);
-      \Log::info('Token provided: ' . $request->token);
-      \Log::info('Token in DB: ' . $passwordReset->token);
-      \Log::info('Created at (UTC): ' . $createdAtUTC);
-      \Log::info('Created at (Asia/Jakarta): ' . $createdAtJakarta);
-      \Log::info('Expiry time (Asia/Jakarta): ' . $expiryTime);
-      \Log::info('Current time (Asia/Jakarta): ' . $currentTime);
+
   
       // Validasi token
       if ($passwordReset->token != $request->token) {

@@ -12,7 +12,6 @@ return new class extends Migration {
   {
     Schema::create('houses', function (Blueprint $table) {
       $table->id();
-      // $table->longText('path')->nullable();
       $table->string('name');
       $table->float('price');
       $table->longText('description');
@@ -21,7 +20,7 @@ return new class extends Migration {
       $table->string('wc');
       $table->boolean('available')->default(false);
       $table->string('quantity');
-      $table->bigInteger('user_id');
+      $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
       $table->bigInteger('address_id')->nullable();;
       $table->timestamps();
     });

@@ -15,22 +15,51 @@ class OwnerResponseController extends Controller
     /**
      * Display a listing of responses for a specific complaint.
      */
-    public function index($complaintId)
+    public function index()
     {
         try {
-            $complaint = UserComplaint::find($complaintId);
+            $userId = auth()->id(); 
 
-            if (!$complaint) {
-                return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
+            $complaints = UserComplaint::where('user_id', $userId) 
+                ->orWhere('owner_id', $userId) 
+                ->with(['user', 'ownerResponses']) 
+                ->get();
+
+            if ($complaints->isEmpty()) {
+                return ResponseFormatter::error(null, 'Tidak ada keluhan ditemukan untuk user ini', 404);
             }
 
-            $responses = OwnerResponse::where('complaint_id', $complaintId)->get();
-            return ResponseFormatter::success($responses, 'Daftar respon berhasil diambil');
+            // Format response
+            $formattedComplaints = $complaints->map(function ($complaint) {
+                return [
+                    'id' => $complaint->id,
+                    'user_id' => $complaint->user_id,
+                    'owner_id' => $complaint->owner_id,
+                    'name' => $complaint->user->name,
+
+                    'title' => $complaint->title,
+                    'description' => $complaint->description,
+                    'status' => $complaint->status,
+                    'responses' => $complaint->ownerResponses->map(function ($response) {
+                        return [
+                            'id' => $response->id,
+                            'response' => $response->response,
+                            'owner_id' => $response->owner_id,
+                            'created_at' => $response->created_at,
+                            'updated_at' => $response->updated_at,
+                        ];
+                    }),
+                ];
+            });
+
+            return ResponseFormatter::success($formattedComplaints, 'Daftar keluhan dan respon berhasil diambil');
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return ResponseFormatter::error(null, 'Gagal mengambil daftar respon', 500);
+            return ResponseFormatter::error(null, 'Gagal mengambil daftar keluhan dan respon', 500);
         }
     }
+
+
 
     /**
      * Store a newly created response.
@@ -52,17 +81,21 @@ class OwnerResponseController extends Controller
                 return ResponseFormatter::error(null, 'Keluhan tidak ditemukan', 404);
             }
     
-            $user = auth()->user();
-            $houseOwnerId = $complaint->transaksiDetail->house->owner_id;  
+            $userId = auth()->id(); // Ambil ID pengguna yang sedang login
+
     
-            if ($user->id != $houseOwnerId) {
-                return ResponseFormatter::error(null, 'Anda bukan pemilik properti ini', 403);
-            }
-    
+            // Debugging: Cek nilai sebelum menyimpan
+            Log::info('Menyimpan respons untuk keluhan ID: ' . $complaintId);
+            Log::info('User  ID: ' . $userId);
             $ownerResponse = OwnerResponse::create([
                 'complaint_id' => $complaintId,
                 'response' => $request->response,
-                'owner_id' => $user->id,  // ID pemilik rumah
+                'user_id' => $userId,
+            ]);
+            $complaint->update([
+                'status' => 'selesai',
+                'owner_response' => $request->response,
+
             ]);
     
             return ResponseFormatter::success($ownerResponse, 'Respon berhasil dikirim');

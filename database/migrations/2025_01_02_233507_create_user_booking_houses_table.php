@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('user_booking_houses', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('user_id');
-            $table->bigInteger('house_id');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('house_id')->constrained('houses')->onDelete('cascade');
             $table->enum('status', ['menunggu', 'selesai', 'ditolak'])->default('menunggu');
             $table->string('quantity');
             $table->date('start_date');

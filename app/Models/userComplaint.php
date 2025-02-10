@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class userComplaint extends Model
 {
-    protected $fillable = ['user_id', 'owner_response', 'title', 'description', 'status'];
+    protected $fillable = ['user_id','owner_id', 'owner_response', 'title', 'description', 'status'];
     public function user()
     {
       return $this->belongsTo(User::class, 'user_id', 'id');
