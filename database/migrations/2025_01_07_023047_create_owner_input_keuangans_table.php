@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('metode')->default('cash');
-            $table->float('uang');
+            $table->float('price');
             $table->date('start_date');
             $table->date('end_date');
             $table->timestamps();

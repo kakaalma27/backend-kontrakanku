@@ -1,19 +1,20 @@
 <?php
 
-use App\Models\transactionsDetails;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\authenticationsApi\ChatController;
 use App\Http\Controllers\authenticationsApi\UserController;
 use App\Http\Controllers\authenticationsApi\HouseController;
 use App\Http\Controllers\authenticationsApi\AddressController;
-use App\Http\Controllers\authenticationsApi\HouseImageController;
+use App\Http\Controllers\authenticationsApi\OwnerHandleController;
 use App\Http\Controllers\authenticationsApi\TransactionController;
 use App\Http\Controllers\authenticationsApi\UserBookmarkController;
 use App\Http\Controllers\authenticationsApi\OwnerResponseController;
 use App\Http\Controllers\authenticationsApi\UserComplaintController;
-use App\Http\Controllers\authenticationsApi\AddressCategoryController;
-use App\Http\Controllers\authenticationsApi\OwnerHandleController;
-use App\Http\Controllers\authenticationsApi\OwnerTargetKeuanganController;
 use App\Http\Controllers\authenticationsApi\UserBookingHouseController;
+use App\Http\Controllers\authenticationsApi\OwnerTargetKeuanganController;
+use App\Http\Controllers\authenticationsApi\PembayaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ Route::prefix('auth')->group(function () {
   Route::post('/reset-password', [UserController::class, 'resetPassword']);
   Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [UserController::class, 'fetch']);
-    Route::put('user', [UserController::class, 'editProfile']);
+    Route::post('user', [UserController::class, 'editProfile']);
     Route::post('logout', [UserController::class, 'logout']);
   });
 });
@@ -70,6 +71,7 @@ Route::middleware('auth:sanctum')
   ->prefix('transaksi')
   ->group(function () {
     Route::get('/user-transaksi', [TransactionController::class, 'getUserTransaksi']);
+    Route::get('/cekPembayaran/{house_id}/{booking_id}', [TransactionController::class, 'cekPembayaran']);
     Route::get('/cek-data', [TransactionController::class, 'index']);
     Route::post('/store', [TransactionController::class, 'store']);
     });
@@ -78,19 +80,22 @@ Route::middleware('auth:sanctum')
 Route::middleware('auth:sanctum')
   ->prefix('houses')
   ->group(function () {
+    Route::get('/get-allOwner', [HouseController::class, 'allOwner']);
     Route::get('/get-all', [HouseController::class, 'all']);
     Route::post('/store', [HouseController::class, 'store']);
     Route::post('/{id}', [HouseController::class, 'update']); 
     Route::delete('/{id}', [HouseController::class, 'destroy']); 
-  });
+    Route::delete('/{house_id}/images/{image_id}', [HouseController::class, 'deleteImage']);
+    });
 
 //pengguna
   Route::middleware('auth:sanctum')
   ->prefix('user-complain')
   ->group(function () {
         Route::get('/', [UserComplaintController::class, 'index']);
+        Route::get('/getUserComplain', [UserComplaintController::class, 'getUserComplain']);
         Route::post('/store', [UserComplaintController::class, 'store']);
-
+        Route::get('/keluhanCount', [UserComplaintController::class, 'keluhanCount']);
   });
 
   //pemilik
@@ -104,7 +109,7 @@ Route::middleware('auth:sanctum')
   Route::middleware('auth:sanctum')
   ->prefix('owner-target')
   ->group(function () {
-    Route::post('/', [OwnerTargetKeuanganController::class, 'store']);
+    Route::post('/store', [OwnerTargetKeuanganController::class, 'store']);
   });
 
   Route::middleware('auth:sanctum')
@@ -120,4 +125,16 @@ Route::middleware('auth:sanctum')
     Route::get('/checkBantunStatus', [OwnerHandleController::class, 'checkBantunStatus']);
     Route::get('/getPenyewa', [OwnerHandleController::class, 'getPenyewa']);
     Route::get('/cekStatusPenyewa', [OwnerHandleController::class, 'cekStatusPenyewa']);
+    Route::get('/uangBulanan', [OwnerHandleController::class, 'uangBulanan']);
+    Route::get('/TransaksiBulanan', [OwnerHandleController::class, 'TransaksiBulanan']);
+    Route::post('/generateAuthToken', [OwnerHandleController::class, 'generateAuthToken']);
+    Route::get('/fetchNotifikasi/{id}', [OwnerHandleController::class, 'fetchNotifikasi']);
+    Route::get('/StatementKeuangan', [OwnerHandleController::class, 'StatementKeuangan']);
+    Route::get('/pdfStatementKeuangan', [OwnerHandleController::class, 'pdfStatementKeuangan']);
+    Route::get('/fetchUserSelesai', [OwnerHandleController::class, 'fetchUserSelesai']);
   });
+
+  Broadcast::routes(['middleware' => ['auth:sanctum']]);
+  Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});

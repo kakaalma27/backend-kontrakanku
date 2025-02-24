@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -24,14 +25,54 @@ class UserController extends Controller
   }
   public function editProfile(Request $request)
   {
-    $data = $request->all();
-
-    $user = Auth::user();
-    $user->update($data);
-
-    return ResponseFormatter::success($user,'Profile Updated');
-  }
+      $user = Auth::user();
   
+      $request->validate([
+          'name' => 'required|string|max:255',
+          'username' => 'required|string|max:255',
+          'email' => 'required|email|max:255',
+          'profile_photo_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+      ]);
+  
+      $data = $request->only(['name', 'username', 'email']);
+  
+      if ($request->hasFile('profile_photo_path')) {
+          // Hapus foto lama jika ada
+          if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+              Storage::disk('public')->delete($user->profile_photo_path);
+          }
+  
+          // Simpan foto baru
+          $image = $request->file('profile_photo_path');
+          $profilePhotoPath = $image->store('profile_photos', 'public');
+          
+          // Generate URL lengkap
+          $data['profile_photo_path'] = Storage::disk('public')->url($profilePhotoPath);
+
+      }
+  
+      try {
+          $user->update($data);
+  
+          // Generate URL lengkap untuk response
+          if (isset($data['profile_photo_path'])) {
+              $data['profile_photo_url'] = url($data['profile_photo_path']);
+          } else {
+              $data['profile_photo_url'] = $user->profile_photo_path 
+                  ? url($user->profile_photo_path) 
+                  : null;
+          }
+  
+      } catch (\Exception $e) {
+          return ResponseFormatter::error($e->getMessage(), 'Update Profile Failed', 500);
+      }
+  
+      return ResponseFormatter::success([
+          'user' => $user->fresh(),
+          'profile_photo_url' => $data['profile_photo_url']
+      ], 'Profile Berhasil diUpdate');
+  }
+    
   public function login(Request $request)
   {
     try {
@@ -46,7 +87,6 @@ class UserController extends Controller
       }
 
       $user = Auth::user();
-      Log::info('User  object:', ['user' => $user]);
       $tokenResult = $user->createToken('authToken')->plainTextToken;
 
       return ResponseFormatter::success(

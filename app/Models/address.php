@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class address extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'category','name', 'phone', 'alamat', 'detail'];
+    protected $fillable = ['user_id', 'name', 'phone', 'alamat', 'detail'];
 
     public function user()
     {

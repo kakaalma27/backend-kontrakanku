@@ -19,4 +19,8 @@ class userBookingHouse extends Model
     {
         return $this->belongsTo(house::class, 'house_id', 'id');
     }
+    public function transactions()
+    {
+      return $this->hasMany(transaction::class, 'booking_id', 'id');
+    }
 }

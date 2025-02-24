@@ -30,4 +30,5 @@ class house extends Model
   public function houseImage() {
     return $this->hasMany(houseImage::class);
   }
+
 }

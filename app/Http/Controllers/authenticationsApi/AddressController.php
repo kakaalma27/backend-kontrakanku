@@ -16,24 +16,13 @@ class AddressController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate the incoming request
             $request->validate([
                 'name' => 'required|string',
                 'phone' => 'required|string',
                 'alamat' => 'required|string',
-                'category' => 'required|string',
             ]);
         
             $user = auth()->user();
-            $category = $request->category;
-        
-            if ($user->role == 0 && $category != 1) {
-                return ResponseFormatter::error(null, 'Anda hanya dapat memilih kategori utama', 403);
-            }
-        
-            if ($user->role == 1 && !in_array($category, [1, 2])) {
-                return ResponseFormatter::error(null, 'Kategori tidak valid', 403);
-            }
         
             $phone = preg_replace('/\D/', '', $request->phone);
         
@@ -49,7 +38,6 @@ class AddressController extends Controller
                 'phone' => $phone,
                 'alamat' => $request->alamat,
                 'detail' => $request->detail,
-                'category' => $category,
             ]);
         
             return ResponseFormatter::success($address, 'Alamat berhasil ditambahkan');
@@ -70,7 +58,6 @@ class AddressController extends Controller
                 'name' => 'required|string',
                 'phone' => 'required|string',
                 'alamat' => 'required|string',
-                'category' => 'required|string',
             ]);
     
             // Cari alamat berdasarkan ID
@@ -80,19 +67,7 @@ class AddressController extends Controller
                 return ResponseFormatter::error(null, 'Alamat tidak ditemukan', 404);
             }
     
-            // Periksa kategori berdasarkan role pengguna
-            $user = auth()->user();
-            $category = $request->category;
-    
-            if ($user->role == 0 && $category != 1) {
-                return ResponseFormatter::error(null, 'Anda hanya dapat memilih kategori utama', 403);
-            }
-    
-            if ($user->role == 1 && !in_array($category, [1, 2])) {
-                return ResponseFormatter::error(null, 'Kategori tidak valid', 403);
-            }
-    
-            // Proses nomor telepon agar valid
+
             $phone = preg_replace('/\D/', '', $request->phone);
     
             if (substr($phone, 0, 1) === '0') {
@@ -106,8 +81,7 @@ class AddressController extends Controller
                 'name' => $request->name,
                 'phone' => $phone,
                 'alamat' => $request->alamat,
-                'detail' => $request->detail ?? '',  // Pastikan detail ada (jika tidak, defaultkan ke kosong)
-                'category' => $category,
+                'detail' => $request->detail ?? '',  
             ]);
     
             return ResponseFormatter::success($address, 'Alamat berhasil diperbarui');

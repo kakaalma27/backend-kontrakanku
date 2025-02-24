@@ -13,7 +13,7 @@ return new class extends Migration {
     Schema::create('houses', function (Blueprint $table) {
       $table->id();
       $table->string('name');
-      $table->float('price');
+      $table->float('price')->default(0);
       $table->longText('description');
       $table->string('tags')->nullable();
       $table->string('kamar');

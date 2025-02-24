@@ -11,6 +11,7 @@ use App\Models\userBookingHouse;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
 use App\Models\transactionsDetails;
+use App\Events\NewNotificationEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,6 +43,7 @@ class TransactionController extends Controller
                     'id' => $transaksi->id,
                     'user_id' => $transaksi->user_id,
                     'house_id' => $transaksi->house_id,
+                    'booking_id' => $transaksi->bookings->id ?? null, // Tambahkan booking_id
                     'name_house' => $transaksi->house->name ?? 'Nama Rumah Tidak Tersedia', 
                     'status' => $transaksi->status,
                     'quantity' => $transaksi->bookings->quantity,
@@ -74,6 +76,22 @@ class TransactionController extends Controller
             );
         }
     }
+
+    public function cekPembayaran(Request $request, $house_id, $booking_id)
+    {
+        $pembayaran = transaction::where('house_id', $house_id)
+            ->where('booking_id', $booking_id)
+            ->where('status', 'menunggu')
+            ->first();
+    
+        if ($pembayaran) {
+            return ResponseFormatter::success($pembayaran, 'Transaksi menunggu');
+        } else {
+            return ResponseFormatter::error(null, 'Transaksi Kosong');
+        }
+    }
+    
+    
     public function index()
     {
         $houses = House::with('addresses')->get();
@@ -125,9 +143,12 @@ class TransactionController extends Controller
               'price' => $total_price,
                 'status' => 'menunggu',
           ]);
+          $pemilik = $house->addresses->user_id;
+          $pengguna = auth()->check() ? auth()->user()->name : 'Guest';
+
+          event(new NewNotificationEvent($pemilik, "Transaksi Menunggu", "$pengguna, Mengirim Permintaan Transaksi Tunai"));
 
           return ResponseFormatter::success($transaksi, 'Transaksi Berhasil');
-  
       } catch (\Exception $e) {
         Log::error($e->getMessage()); // Log error ke file Laravel
         return ResponseFormatter::error('Terjadi kesalahan: ' . $e->getMessage(), 500);
@@ -155,7 +176,9 @@ class TransactionController extends Controller
     // Perbarui status transaksi
     $transaksi->status = $request->status;
     $transaksi->save();
-
+    $tenantId = $transaksi->user_id;
+    event(new NewNotificationEvent($tenantId, "transaksi DiKirim", "Selamat, transaksi Anda Menunggu."));
+    
     return ResponseFormatter::success($transaksi, 'Status transaksi berhasil diperbarui');
 }
 }

@@ -5,10 +5,11 @@ namespace App\Http\Controllers\authenticationsApi;
 use Carbon\Carbon;
 use App\Models\house;
 use Illuminate\Http\Request;
-use App\Helpers\ResponseFormatter;
-use App\Http\Controllers\Controller;
-use App\Models\transactionsDetails;
 use App\Models\userBookingHouse;
+use App\Helpers\ResponseFormatter;
+use App\Models\transactionsDetails;
+use App\Events\NewNotificationEvent;
+use App\Http\Controllers\Controller;
 
 class UserBookingHouseController extends Controller
 {
@@ -23,17 +24,11 @@ class UserBookingHouseController extends Controller
             if ($id) {
                 $query->where('id', $id);
             }
-    
-            // Ambil data booking
             $user_booking = $query->get()->map(function ($booking) {
                 $images = $booking->house->houseImage;
                 $imagePath = !$images->isEmpty() ? $images->first()->path : 'URL Gambar Tidak Tersedia';
-    
-                // Menghitung total harga berdasarkan quantity
                 $totalHarga = $booking->house->price * $booking->quantity;
-    
                 $formattedHarga = $totalHarga;
-    
                 return [
                     'id' => $booking->id,
                     'user_id' => $booking->user_id,
@@ -79,11 +74,10 @@ class UserBookingHouseController extends Controller
                 'house_id' => 'required|exists:houses,id',
                 'quantity' => 'required|string',
                 'start_date' => 'required|date',
-                'end_date' => 'required|date|after:start_date',
+                'end_date' => 'nullable|date|after:start_date', // end_date bisa null
             ]);
     
             $house = house::find($request->house_id);
-    
             if ($house->quantity < $request->quantity) {
                 return ResponseFormatter::error([
                     'quantity' => "Maaf, stok rumah tidak mencukupi untuk pesanan Anda."
@@ -91,34 +85,43 @@ class UserBookingHouseController extends Controller
             }
     
             $startDate = Carbon::parse($request->start_date);
-            $expectedEndDate = $startDate->copy()->addDays(30);
-            $endDate = Carbon::parse($request->end_date);
+            
+            $endDate = $request->end_date ? Carbon::parse($request->end_date) : $startDate->copy()->addMonth();
     
-            if ($endDate != $expectedEndDate) {
-                if ($endDate < $expectedEndDate) {
-                    $daysLeft = $expectedEndDate->diffInDays($endDate);
-                    return ResponseFormatter::error([
-                        'end_date' => "Oops, Anda kurang $daysLeft hari untuk mencapai 30 hari."
-                    ], 'Booking gagal', 400);
-                } else {
-                    $daysExceeded = $endDate->diffInDays($expectedEndDate);
-                    return ResponseFormatter::error([
-                        'end_date' => "Oops, Anda melebihi $daysExceeded hari dari tanggal yang diharapkan."
-                    ], 'Booking gagal', 400);
-                }
+            if ($endDate->day !== $startDate->day) {
+                return ResponseFormatter::error([
+                    null => "Maaf, awal harus jatuh pada tanggal yang sama dengan akhir."
+                ], 'Booking gagal', 400);
             }
     
-            $house->decrement('quantity', $request->quantity);
+            $monthsDiff = $startDate->diffInMonths($endDate);
     
+            if ($monthsDiff > 6) {
+                return ResponseFormatter::error([
+                    'end_date' => "Maaf, durasi booking tidak boleh lebih dari 6 bulan."
+                ], 'Booking gagal', 400);
+            }
+    
+            if ($monthsDiff < 1) {
+                return ResponseFormatter::error([
+                    'end_date' => "Maaf, durasi booking minimal 1 bulan."
+                ], 'Booking gagal', 400);
+            }
+            $pengguna = auth()->check() ? auth()->user()->name : 'Guest';
+
+            $house->decrement('quantity', $request->quantity);
+            $pemilik = $house->addresses->user_id;
+
             $booking = userBookingHouse::create([
                 'user_id' => auth()->id(),
                 'house_id' => $house->id,
                 'status' => 'menunggu',
                 'quantity' => $request->quantity,
                 'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
+                'end_date' => $endDate->toDateString(), // Simpan end_date yang sudah diatur
             ]);
-    
+            event(new NewNotificationEvent($pemilik, "Booking Menunggu", "$pengguna, Mengirim Permintaan Booking"));
+
             return ResponseFormatter::success($booking, 'Booking Berhasil');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ResponseFormatter::error([
@@ -157,29 +160,5 @@ class UserBookingHouseController extends Controller
 
         return ResponseFormatter::success(null, 'Booking berhasil dihapus');
     }
-public function updateStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|string|in:menunggu,selesai,ditolak', // Sesuaikan dengan status yang ada di enum
-    ]);
-
-    $booking = userBookingHouse::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->first();
-
-    if (!$booking) {
-        return ResponseFormatter::error(
-            null,
-            'Booking tidak ditemukan',
-            404
-        );
-    }
-
-    // Perbarui status booking
-    $booking->status = $request->status;
-    $booking->save();
-
-    return ResponseFormatter::success($booking, 'Status booking berhasil diperbarui');
-}
 
 }

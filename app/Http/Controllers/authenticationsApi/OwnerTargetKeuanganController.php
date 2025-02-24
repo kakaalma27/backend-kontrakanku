@@ -14,7 +14,7 @@ class OwnerTargetKeuanganController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'total' => 'required|regex:/^\d+$/', 
-            'uang' => 'required|regex:/^\d+$/', 
+            'price' => 'required|regex:/^\d+$/', 
         ]);
 
         if ($validator->fails()) {
@@ -22,10 +22,16 @@ class OwnerTargetKeuanganController extends Controller
         }
 
         try {
+            $existingData = ownerTargetKeuangan::where('user_id', auth()->id())->first();
+
+            if ($existingData) {
+                return ResponseFormatter::error(null, 'Hanya boleh ada satu data target keuangan untuk setiap pengguna.', 422);
+            }
+
             $ownerResponse = ownerTargetKeuangan::create([
                 'user_id' => auth()->id(),
                 'total' => $request->total,
-                'uang' => $request->uang,
+                'price' => $request->price,
             ]);
 
             return ResponseFormatter::success($ownerResponse, 'Target Keuangan Berhasil diSimpan');
@@ -33,4 +39,5 @@ class OwnerTargetKeuanganController extends Controller
             return ResponseFormatter::error(null, 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage(), 500);
         }
     }
+
 }

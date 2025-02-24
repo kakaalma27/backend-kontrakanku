@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('total');
-            $table->decimal('uang', 15, 2); // 15 digit total, 2 digit desimal
+            $table->decimal('price', 12, 2)->default(0);       
             $table->timestamps();
         });
     }

@@ -19,7 +19,7 @@ class User extends Authenticatable
    *
    * @var array<int, string>
    */
-  protected $fillable = ['name', 'username', 'role', 'email', 'password'];
+  protected $fillable = ['name', 'username', 'role', 'email', 'password', 'profile_photo_path'];
 
   /**
    * The attributes that should be hidden for serialization.
@@ -47,11 +47,7 @@ class User extends Authenticatable
       'password' => 'hashed',
     ];
   }
-  public function bookings()
-  {
-      return $this->hasMany(Booking::class);
-  }
-  
+
   public function transactions()
   {
     return $this->hasMany(transaction::class, 'user_id', 'id');
